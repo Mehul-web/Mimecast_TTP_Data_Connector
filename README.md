@@ -1,4 +1,4 @@
-# Infoblox Get Service Name
+# Infoblox Get Host Name
 
 * [Summary](#Summary)
 * [Prerequisites](#Prerequisites)
@@ -7,7 +7,7 @@
 
 ## Summary<a name="Summary"></a>
 
-The playbook will retrieve data from the 'Services' API and import it into a custom table within the Azure Log Analytics Workspace.
+The playbook will retrieve data from the 'Hosts' API and import it into a custom table within the Azure Log Analytics Workspace.
 
 ### Prerequisites<a name="Prerequisites"></a>
 
@@ -21,7 +21,7 @@ The playbook will retrieve data from the 'Services' API and import it into a cus
     * Infoblox API Key: Enter valid value for API Key
     * Infoblox Base Url: Enter baseurl for your Infoblox instance.(e.g. https://csp.infoblox.com)
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https%3A%2F%2Fportal.azure.com%2F%23create%2FMicrosoft.Template%2Furi%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FInfoblox%2FPlaybooks%2FInfoblox%20Get%20Service%20Name%2Fazuredeploy.json) [![Deploy to Azure](https://aka.ms/deploytoazuregovbutton)](https%3A%2F%2Fportal.azure.us%2F%23create%2FMicrosoft.Template%2Furi%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FInfoblox%2FPlaybooks%2FInfoblox%20Get%20Service%20Name%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https%3A%2F%2Fportal.azure.com%2F%23create%2FMicrosoft.Template%2Furi%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FInfoblox%2FPlaybooks%2FInfoblox%20Get%20Host%20Name%2Fazuredeploy.json) [![Deploy to Azure](https://aka.ms/deploytoazuregovbutton)](https%3A%2F%2Fportal.azure.us%2F%23create%2FMicrosoft.Template%2Furi%2Fhttps%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FAzure-Sentinel%2Fmaster%2FSolutions%2FInfoblox%2FPlaybooks%2FInfoblox%20Get%20Host%20Name%2Fazuredeploy.json)
 
 ### Post-Deployment instructions<a name="Post-Deployment-instructions"></a>
 
