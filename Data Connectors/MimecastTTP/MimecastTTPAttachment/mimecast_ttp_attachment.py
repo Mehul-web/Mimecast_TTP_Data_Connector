@@ -10,6 +10,7 @@ import inspect
 import json
 import datetime
 import time
+from tenacity import RetryError
 
 
 file_path = "mimecastttpattachment"
@@ -205,6 +206,18 @@ class MimecastTTPAttachment(Utils):
             return from_date, to_date
         except MimecastTimeoutException:
             raise MimecastTimeoutException()
+        except RetryError as error:
+            applogger.error(
+                self.log_format.format(
+                    consts.LOGS_STARTS_WITH,
+                    __method_name,
+                    self.azure_function_name,
+                    consts.MAX_RETRY_ERROR_MSG.format(
+                        error, error.last_attempt.exception()
+                    ),
+                )
+            )
+            raise MimecastException()
         except MimecastException:
             raise MimecastException()
         except ValueError as err:

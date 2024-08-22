@@ -10,6 +10,7 @@ import inspect
 import json
 import datetime
 import time
+from tenacity import RetryError
 
 
 file_path = "mimecastttpurl"
@@ -203,6 +204,18 @@ class MimecastTTPUrl(Utils):
         except MimecastTimeoutException:
             raise MimecastTimeoutException()
         except MimecastException:
+            raise MimecastException()
+        except RetryError as error:
+            applogger.error(
+                self.log_format.format(
+                    consts.LOGS_STARTS_WITH,
+                    __method_name,
+                    self.azure_function_name,
+                    consts.MAX_RETRY_ERROR_MSG.format(
+                        error, error.last_attempt.exception()
+                    ),
+                )
+            )
             raise MimecastException()
         except ValueError as err:
             applogger.error(

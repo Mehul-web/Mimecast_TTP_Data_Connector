@@ -15,8 +15,9 @@ from tenacity import (
     retry_if_exception_type,
     retry_if_result,
     retry_any,
+    RetryError,
 )
-from requests.exceptions import ConnectionError, Timeout
+from requests.exceptions import ConnectionError
 
 
 class Utils:
@@ -196,7 +197,7 @@ class Utils:
             raise MimecastException()
 
     def retry_on_status_code(response):
-        """Method checks and retry on list of status code.
+        """Check and retry based on a list of status codes.
 
         Args:
             response (): API response is passed
@@ -224,7 +225,7 @@ class Utils:
             retry_if_exception_type(ConnectionError),
         ),
         before_sleep=lambda retry_state: applogger.error(
-            "{}(method={}) : Retry number: {} due to {} ".format(
+            "{}(method = {}) : Retry number: {} due to exception : {} ".format(
                 consts.LOGS_STARTS_WITH,
                 " Retry Decorator",
                 retry_state.attempt_number,
@@ -232,9 +233,7 @@ class Utils:
             )
         ),
     )
-    def make_rest_call(
-        self, method, url, params=None, data=None, json=None, check_retry=True
-    ):
+    def make_rest_call(self, method, url, params=None, data=None, json=None, check_retry=True):
         """Make a rest call.
 
         Args:
@@ -287,9 +286,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Bad Request = {}, Status code : {}".format(
-                            response.text, response.status_code
-                        ),
+                        "Bad Request = {}, Status code : {}".format(response.text, response.status_code),
                     )
                 )
                 self.handle_failed_response_for_failure(response)
@@ -320,9 +317,7 @@ class Utils:
                     )
                     check_retry = False
                     self.authenticate_mimecast_api(check_retry)
-                    return self.make_rest_call(
-                        method, url, params, data, json, check_retry
-                    )
+                    return self.make_rest_call(method, url, params, data, json, check_retry)
                 else:
                     applogger.error(
                         self.log_format.format(
@@ -330,9 +325,7 @@ class Utils:
                             __method_name,
                             self.azure_function_name,
                             "Max retry reached for generating access token,"
-                            "Error message = {}, Error code = {}".format(
-                                error_message, error_code
-                            ),
+                            "Error message = {}, Error code = {}".format(error_message, error_code),
                         )
                     )
                     raise MimecastException()
@@ -352,9 +345,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Not Found, URL : {}, Status code : {}".format(
-                            url, response.status_code
-                        ),
+                        "Not Found, URL : {}, Status code : {}".format(url, response.status_code),
                     )
                 )
                 raise MimecastException()
@@ -374,9 +365,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Too Many Requests, Status code : {} ".format(
-                            response.status_code
-                        ),
+                        "Too Many Requests, Status code : {} ".format(response.status_code),
                     )
                 )
                 return response
@@ -386,9 +375,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Internal Server Error, Status code : {}".format(
-                            response.status_code
-                        ),
+                        "Internal Server Error, Status code : {}".format(response.status_code),
                     )
                 )
                 return self.handle_failed_response_for_failure(response)
@@ -398,9 +385,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Issue with a downstream service , Status code : {}".format(
-                            response.status_code
-                        ),
+                        "Issue with a downstream service , Status code : {}".format(response.status_code),
                     )
                 )
                 return self.handle_failed_response_for_failure(response)
@@ -410,33 +395,20 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Timeout from a downstream service, Status code : {}".format(
-                            response.status_code
-                        ),
+                        "Timeout from a downstream service, Status code : {}".format(response.status_code),
                     )
                 )
                 return self.handle_failed_response_for_failure(response)
-            else:
-                applogger.error(
-                    self.log_format.format(
-                        consts.LOGS_STARTS_WITH,
-                        __method_name,
-                        self.azure_function_name,
-                        "Unexpected Error = {}, Status code : {}".format(
-                            response.text, response.status_code
-                        ),
-                    )
-                )
-                raise MimecastException()
             applogger.error(
                 self.log_format.format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    "Max retries exceeded.",
+                    "Unexpected Error = {}, Status code : {}".format(response.text, response.status_code),
                 )
             )
             raise MimecastException()
+
         except MimecastException:
             raise MimecastException()
         except requests.exceptions.Timeout as error:
@@ -583,6 +555,7 @@ class Utils:
 
     def authenticate_mimecast_api(self, check_retry=True):
         """Authenticate mimecast endpoint generate access token and update header.
+
         Args:
             check_retry (bool):  Flag for retry of generating access token.
         """
@@ -603,9 +576,7 @@ class Utils:
             )
             self.headers = {}
             url = "{}{}".format(consts.BASE_URL, consts.ENDPOINTS["OAUTH2"])
-            response = self.make_rest_call(
-                method="POST", url=url, data=body, check_retry=check_retry
-            )
+            response = self.make_rest_call(method="POST", url=url, data=body, check_retry=check_retry)
             if "access_token" in response:
                 access_token = response.get("access_token")
                 self.headers.update(
@@ -628,13 +599,21 @@ class Utils:
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    "Error occurred while fetching the access token from the response = {}".format(
-                        response
-                    ),
+                    "Error occurred while fetching the access token from the response = {}".format(response),
                 )
             )
             raise MimecastException()
         except MimecastException:
+            raise MimecastException()
+        except RetryError as error:
+            applogger.error(
+                self.log_format.format(
+                    consts.LOGS_STARTS_WITH,
+                    __method_name,
+                    self.azure_function_name,
+                    consts.MAX_RETRY_ERROR_MSG.format(error, error.last_attempt.exception()),
+                )
+            )
             raise MimecastException()
         except KeyError as key_error:
             applogger.error(
@@ -668,9 +647,7 @@ class Utils:
         """
         __method_name = inspect.currentframe().f_code.co_name
         try:
-            date_time_obj = datetime.datetime.strptime(
-                date_time, consts.DATE_TIME_FORMAT
-            )
+            date_time_obj = datetime.datetime.strptime(date_time, consts.DATE_TIME_FORMAT)
             epoch_time = date_time_obj.timestamp()
             return epoch_time
         except TypeError as error:

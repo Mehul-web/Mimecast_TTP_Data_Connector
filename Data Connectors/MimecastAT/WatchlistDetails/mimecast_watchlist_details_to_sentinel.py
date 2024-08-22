@@ -7,6 +7,7 @@ from ..SharedCode.logger import applogger
 from ..SharedCode.state_manager import StateManager
 from ..SharedCode.utils import Utils
 import time
+from tenacity import RetryError
 
 
 class MimecastAwarenessWatchlist(Utils):
@@ -172,6 +173,18 @@ class MimecastAwarenessWatchlist(Utils):
                     __method_name,
                     self.azure_function_name,
                     consts.KEY_ERROR_MSG.format(key_error),
+                )
+            )
+            raise MimecastException()
+        except RetryError as error:
+            applogger.error(
+                self.log_format.format(
+                    consts.LOGS_STARTS_WITH,
+                    __method_name,
+                    self.azure_function_name,
+                    consts.MAX_RETRY_ERROR_MSG.format(
+                        error, error.last_attempt.exception()
+                    ),
                 )
             )
             raise MimecastException()

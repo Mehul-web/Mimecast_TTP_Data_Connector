@@ -18,6 +18,7 @@ from ..SharedCode.logger import applogger
 from ..SharedCode.state_manager import StateManager
 from ..SharedCode.utils import Utils
 from ..SharedCode.sentinel import post_data_async
+from tenacity import RetryError
 
 
 class MimecastCIToSentinel(Utils):
@@ -180,6 +181,18 @@ class MimecastCIToSentinel(Utils):
                 page += 1
         except MimecastTimeoutException:
             raise MimecastTimeoutException()
+        except RetryError as error:
+            applogger.error(
+                self.log_format.format(
+                    consts.LOGS_STARTS_WITH,
+                    __method_name,
+                    self.azure_function_name,
+                    consts.MAX_RETRY_ERROR_MSG.format(
+                        error, error.last_attempt.exception()
+                    ),
+                )
+            )
+            raise MimecastException()
         except MimecastException:
             raise MimecastException()
         except Exception as err:

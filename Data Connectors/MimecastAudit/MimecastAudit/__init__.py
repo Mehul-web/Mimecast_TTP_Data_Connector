@@ -11,12 +11,7 @@ import azure.functions as func
 
 
 def main(mytimer: func.TimerRequest) -> None:
-    """Mimecast Audit Class.
-
-    Args:
-        mytimer (func.TimerRequest): _description_
-    """
-
+    """Mimecast Audit Function."""
     __method_name = inspect.currentframe().f_code.co_name
     utc_timestamp = (
         datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()

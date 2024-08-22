@@ -52,6 +52,8 @@ VALUE_ERROR_MSG = "Value error : Error-{}"
 JSON_DECODE_ERROR_MSG = "JSONDecode error : Error-{}"
 CLIENT_ERROR_MSG = "Client error : Error-{}"
 TIME_OUT_ERROR_MSG = "Timeout error : Error-{}"
+MAX_RETRY_ERROR_MSG = "Max retries exceeded : {} Last exception: {}"
+
 
 # *checkpoint related constants
 CONN_STRING = os.environ.get("Connection_String")

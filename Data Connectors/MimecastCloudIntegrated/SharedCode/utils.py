@@ -15,8 +15,9 @@ from tenacity import (
     retry_if_exception_type,
     retry_if_result,
     retry_any,
+    RetryError,
 )
-from requests.exceptions import ConnectionError, Timeout
+from requests.exceptions import ConnectionError
 
 
 class Utils:
@@ -196,7 +197,7 @@ class Utils:
             raise MimecastException()
 
     def retry_on_status_code(response):
-        """Checks and retry on list of status code.
+        """Check and retry based on a list of status codes.
 
         Args:
             response (): API response is passed
@@ -227,7 +228,7 @@ class Utils:
             retry_if_exception_type(ConnectionError),
         ),
         before_sleep=lambda retry_state: applogger.error(
-            "{}(method={}) : {} : Retry number: {} due to {} ".format(
+            "{}(method = {}) : {} : Retry number: {} due to exception : {} ".format(
                 consts.LOGS_STARTS_WITH,
                 " Retry Decorator",
                 consts.CLOUD_INTEGRATED_FUNCTION_NAME,
@@ -420,24 +421,15 @@ class Utils:
                     )
                 )
                 return self.handle_failed_response_for_failure(response)
-            else:
-                applogger.error(
-                    self.log_format.format(
-                        consts.LOGS_STARTS_WITH,
-                        __method_name,
-                        self.azure_function_name,
-                        "Unexpected Error = {}, Status code : {}".format(
-                            response.text, response.status_code
-                        ),
-                    )
-                )
-                raise MimecastException()
+
             applogger.error(
                 self.log_format.format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    "Max retries exceeded.",
+                    "Unexpected Error = {}, Status code : {}".format(
+                        response.text, response.status_code
+                    ),
                 )
             )
             raise MimecastException()
@@ -640,6 +632,18 @@ class Utils:
             )
             raise MimecastException()
         except MimecastException:
+            raise MimecastException()
+        except RetryError as error:
+            applogger.error(
+                self.log_format.format(
+                    consts.LOGS_STARTS_WITH,
+                    __method_name,
+                    self.azure_function_name,
+                    consts.MAX_RETRY_ERROR_MSG.format(
+                        error, error.last_attempt.exception()
+                    ),
+                )
+            )
             raise MimecastException()
         except KeyError as key_error:
             applogger.error(

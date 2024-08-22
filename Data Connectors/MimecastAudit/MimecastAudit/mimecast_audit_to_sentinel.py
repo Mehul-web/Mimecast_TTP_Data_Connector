@@ -10,6 +10,7 @@ from SharedCode.logger import applogger
 from SharedCode.mimecast_exception import MimecastException, MimecastTimeoutException
 from SharedCode.utils import Utils
 from SharedCode import sentinel
+from tenacity import RetryError
 
 
 class MimeCastAuditToSentinel(Utils):
@@ -185,7 +186,7 @@ class MimeCastAuditToSentinel(Utils):
                             consts.LOGS_STARTS_WITH,
                             __method_name,
                             self.azure_function_name,
-                            "Date set to 15 days in the past",
+                            "Date set to {} days in the past".format(consts.DAYS_BACK),
                         )
                     )
                 else:
@@ -463,6 +464,18 @@ class MimeCastAuditToSentinel(Utils):
                     __method_name,
                     self.azure_function_name,
                     consts.KEY_ERROR_MSG.format(key_error),
+                )
+            )
+            raise MimecastException()
+        except RetryError as error:
+            applogger.error(
+                self.log_format.format(
+                    consts.LOGS_STARTS_WITH,
+                    __method_name,
+                    self.azure_function_name,
+                    consts.MAX_RETRY_ERROR_MSG.format(
+                        error, error.last_attempt.exception()
+                    ),
                 )
             )
             raise MimecastException()
