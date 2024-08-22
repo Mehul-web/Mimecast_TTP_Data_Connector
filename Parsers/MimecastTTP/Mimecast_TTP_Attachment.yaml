@@ -1,0 +1,66 @@
+id: aea16729-fdd1-43aa-84bd-9127c0c53d03
+Function:
+  Title: Parser for Mimecast TTP ATTACHMENT
+  Version: "1.0.0"
+  LastUpdated: "2024-07-15"
+Category: Microsoft Sentinel Parser
+FunctionName: MimecastTTPAttachment
+FunctionAlias: MimecastTTPAttachment
+FunctionQuery: |
+  let dummy_table = datatable(TimeGenerated: datetime, senderAddress_s: string, recipientAddress_s: string, messageId_s: string) [];
+  let MimecastTTPAttachment = view() {
+  union isfuzzy=true dummy_table,
+  Ttp_Attachment_CL
+  | summarize arg_max(TimeGenerated, *) by senderAddress_s, recipientAddress_s, messageId_s
+  | extend Category = column_ifexists('Category', ''),
+      Computer = column_ifexists('Computer', ''),
+      MG = column_ifexists('MG', ''),
+      ManagementGroupName = column_ifexists('ManagementGroupName', ''),
+      RawData = column_ifexists('RawData', ''),
+      SourceSystem = column_ifexists('SourceSystem', ''),
+      TenantId = column_ifexists('TenantId', ''),
+      TimeGenerated  = column_ifexists('TimeGenerated', ''),
+      Type = column_ifexists('Type', ''),
+      _ResourceId = column_ifexists('_ResourceId', ''),
+      Mimecast_Event_ID = 'ttp_attachment',
+      Mimecast_Event_Category = 'ttp_attachment',
+      Action_Triggered = column_ifexists('actionTriggered_s',''),
+      Date = column_ifexists('date_t',''),
+      Definition = column_ifexists('definition_s',''),
+      Details = column_ifexists('details_s',''),
+      FileHash = column_ifexists('fileHash_s',''),
+      FileName = column_ifexists('fileName_s',''),
+      FileType = column_ifexists('fileType_s',''),
+      MessageID = column_ifexists('messageId_s',''),
+      RecipientAddress = column_ifexists('recipientAddress_s',''),
+      Result = column_ifexists('result_s',''),
+      Route = column_ifexists('route_s',''),
+      SenderAddress = column_ifexists('senderAddress_s',''),
+      Subject = column_ifexists('subject_s','')
+  | project TimeGenerated,
+      Mimecast_Event_ID,
+      Mimecast_Event_Category,
+      Action_Triggered,
+      Date,
+      Definition,
+      Details,
+      FileHash,
+      FileName,
+      FileType,
+      MessageID,
+      RecipientAddress,
+      Result,
+      Route,
+      SenderAddress,
+      Subject,
+      Category,
+      MG,
+      ManagementGroupName,
+      SourceSystem,
+      TenantId,
+      _ResourceId,
+      Computer,
+      RawData,
+      Type
+  };
+  MimecastTTPAttachment

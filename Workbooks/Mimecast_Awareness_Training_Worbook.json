@@ -1,0 +1,1264 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "id": "6c07c649-3f3c-4383-ac47-32494f912d63",
+            "cellValue": "setTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Human Risk Overview",
+            "subTarget": "HumanRisk",
+            "style": "link"
+          },
+          {
+            "id": "5884fe55-37eb-4fb0-8835-61de095259ed",
+            "cellValue": "setTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Awareness Training",
+            "subTarget": "AwarenessTraining",
+            "style": "link"
+          },
+          {
+            "id": "d69c5034-e10a-4d89-b776-dede3e65da34",
+            "cellValue": "setTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Phishing Training",
+            "subTarget": "PhishingTraining",
+            "style": "link"
+          }
+        ]
+      },
+      "name": "links - 5"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "\r\n\r\n---"
+      },
+      "name": "text - 5"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "568f52ad-774c-4bf2-84e2-b0b7d5610797",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Time_Range",
+                  "label": "Time Range",
+                  "type": 4,
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 300000
+                      },
+                      {
+                        "durationMs": 900000
+                      },
+                      {
+                        "durationMs": 1800000
+                      },
+                      {
+                        "durationMs": 3600000
+                      },
+                      {
+                        "durationMs": 14400000
+                      },
+                      {
+                        "durationMs": 43200000
+                      },
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 172800000
+                      },
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "value": {
+                    "durationMs": 1209600000
+                  }
+                },
+                {
+                  "id": "0f645fbe-75ca-4eff-a2ed-c25bacdedfc7",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Email",
+                  "type": 1,
+                  "query": "print tostring('*')",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 0 - Copy"
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "### Watchlist Panels\r\n\r\n----"
+            },
+            "name": "text - 5"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessWatchlist\r\n| where ('{Email}' == \"*\" or Email == '{Email}') and isnotempty(Email)\r\n| summarize Count = count() by WatchlistCount\r\n| project tostring(toint(WatchlistCount)) , Count\r\n\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Breakdown by Watchlist Count",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "group": "WatchlistCount",
+                "createOtherGroup": 10,
+                "showMetrics": false,
+                "showLegend": true
+              }
+            },
+            "customWidth": "35",
+            "name": "query - 0",
+            "styleSettings": {
+              "maxWidth": "35%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessWatchlist\r\n| project  Email , Name , [\"Watchlist Count\"]= WatchlistCount , UserState ",
+              "size": 0,
+              "showAnalytics": true,
+              "title": "Watchlist Overview",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "rowLimit": 10000,
+                "filter": true
+              }
+            },
+            "customWidth": "65",
+            "name": "query - 2",
+            "styleSettings": {
+              "margin": "5px",
+              "maxWidth": "65%",
+              "showBorder": true
+            }
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "### Performance Panels\r\n\r\n\r\n----"
+                  },
+                  "name": "text - 4"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessPerformanceDetails\r\n| project Email , [\"Num of Correct\"]= NumCorrect ,[\"Num of Incorrect\"]= NumIncorrect , [\"Num of Not Watched\"]= NumNotWatched, Name , [\"User Details\"] = UserDetails , [\"User State\"]= UserState , Department\r\n",
+                    "size": 0,
+                    "showAnalytics": true,
+                    "title": "Performance Overview",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "showExportToExcel": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "gridSettings": {
+                      "rowLimit": 10000,
+                      "filter": true
+                    }
+                  },
+                  "name": "query - 4",
+                  "styleSettings": {
+                    "margin": "5px",
+                    "showBorder": true
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessPerformanceDetails\r\n| where ('{Email}' == \"*\" or Email == '{Email}') and isnotempty(Email)\r\n| extend NumCorrect = tostring( toint(NumCorrect)) \r\n| summarize Count = count() by NumCorrect",
+                    "size": 0,
+                    "showAnalytics": true,
+                    "title": "Correct Number by Count",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "unstackedbar",
+                    "chartSettings": {
+                      "group": "NumCorrect",
+                      "createOtherGroup": null
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 1",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessPerformanceDetails\r\n| where ('{Email}' == \"*\" or Email == '{Email}') and isnotempty(Email)\r\n| extend NumIncorrect = tostring( toint(NumIncorrect)) \r\n| summarize Count = count() by (NumIncorrect)\r\n\r\n",
+                    "size": 0,
+                    "showAnalytics": true,
+                    "title": "Incorrect Number by Count",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "barchart",
+                    "chartSettings": {
+                      "group": "NumIncorrect",
+                      "createOtherGroup": 10
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 4",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessPerformanceDetails\r\n| where ('{Email}' == \"*\" or Email == '{Email}') and isnotempty(Email)\r\n| extend NumNotWatched = tostring( toint(NumNotWatched)) \r\n| sort by NumNotWatched \r\n| take 10\r\n| summarize Count = count() by (NumNotWatched)\r\n",
+                    "size": 0,
+                    "showAnalytics": true,
+                    "title": "Not Watched by Count",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "barchart",
+                    "chartSettings": {
+                      "group": "NumNotWatched",
+                      "createOtherGroup": null
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 0",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                }
+              ]
+            },
+            "name": "group - 8"
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "### User Stats Panels\r\n\r\n----"
+                  },
+                  "name": "text - 9"
+                },
+                {
+                  "type": 9,
+                  "content": {
+                    "version": "KqlParameterItem/1.0",
+                    "parameters": [
+                      {
+                        "id": "994dee73-1b2c-43cd-b3e5-e91e6c3495ab",
+                        "version": "KqlParameterItem/1.0",
+                        "name": "Template_Name",
+                        "label": "Template Name",
+                        "type": 2,
+                        "quote": "'",
+                        "delimiter": ",",
+                        "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n| where isnotempty(TemplateName)\r\n| distinct TemplateName\r\n| sort by TemplateName asc",
+                        "typeSettings": {
+                          "additionalResourceOptions": [
+                            "value::all"
+                          ],
+                          "selectAllValue": "*",
+                          "showDefault": false
+                        },
+                        "timeContext": {
+                          "durationMs": 2419200000
+                        },
+                        "timeContextFromParameter": "Time_Range",
+                        "defaultValue": "value::all",
+                        "queryType": 0,
+                        "resourceType": "microsoft.operationalinsights/workspaces"
+                      }
+                    ],
+                    "style": "pills",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces"
+                  },
+                  "name": "parameters - 0 - Copy"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessUserData\r\n| project Name,  Email, [\"Template Name\"] = TemplateName,Status, [\"Number of Campaigns Clicked\"] = NumCampaignsClicked, [\"Number of Campaigns Sent\"] = NumCampaignsSent, [\"Number of Correct Answers\"] = NumCorrectAnswers, [\"Number of Incorrect Answers\"] = NumIncorrectAnswers, [\"Number of Training Modules Assigned\"] = NumTrainingModulesAssigned, [\"User State\"] = UserState, [\"Clicked IP\"] = ClickedIp, [\"Reaction Time\"] = ReactionTime, [\"Time Clicked\"] = TimeClicked, [\"Time Opened\"] = TimeOpened",
+                    "size": 0,
+                    "showAnalytics": true,
+                    "title": "User Stats Overview",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "showExportToExcel": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "gridSettings": {
+                      "rowLimit": 10000,
+                      "filter": true
+                    }
+                  },
+                  "name": "query - 9",
+                  "styleSettings": {
+                    "margin": "5px",
+                    "showBorder": true
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n    and  isnotempty(TemplateName)\r\n|  where ( ('{Template_Name}') == \"*\" or TemplateName == ('{Template_Name}'))\r\n//| summarize by Email, TemplateName, NumCampaignsSent\r\n| summarize Count = count()  by NumCampaignsSent\r\n| project tostring(toint(NumCampaignsSent)) , Count\r\n\r\n\r\n",
+                    "size": 3,
+                    "showAnalytics": true,
+                    "title": "Breakdown by Number of Campaigns Sent",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "graphSettings": {
+                      "type": 0
+                    },
+                    "chartSettings": {
+                      "group": "NumCampaignsSent",
+                      "createOtherGroup": 10,
+                      "showMetrics": false,
+                      "showLegend": true
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 0",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n    and isnotempty(TemplateName)\r\n|  where ( ('{Template_Name}') == \"*\" or TemplateName == ('{Template_Name}'))\r\n//| summarize by Email, TemplateName, NumCampaignsClicked\r\n| summarize Count = count()  by NumCampaignsClicked\r\n| project tostring(toint(NumCampaignsClicked)) , Count\r\n\r\n",
+                    "size": 3,
+                    "showAnalytics": true,
+                    "title": "Breakdown by Number of Campaigns Clicked",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "chartSettings": {
+                      "group": "NumCampaignsClicked",
+                      "createOtherGroup": 10,
+                      "showMetrics": false,
+                      "showLegend": true
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 1",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n    and isnotempty(TemplateName)\r\n|  where ( ('{Template_Name}') == \"*\" or TemplateName == ('{Template_Name}'))\r\n//| summarize by Email, TemplateName, NumTrainingModulesAssigned\r\n| summarize Count = count()  by NumTrainingModulesAssigned\r\n| project tostring(toint(NumTrainingModulesAssigned)) , Count\r\n\r\n",
+                    "size": 3,
+                    "showAnalytics": true,
+                    "title": "Breakdown by Number of Training Modules Assigned",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "chartSettings": {
+                      "group": "NumTrainingModulesAssigned",
+                      "createOtherGroup": 10,
+                      "showMetrics": false,
+                      "showLegend": true
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 1",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n    and isnotempty(TemplateName)\r\n|  where ( ('{Template_Name}') == \"*\" or TemplateName == ('{Template_Name}'))\r\n//| summarize by Email, TemplateName, NumCorrectAnswers\r\n| summarize Count = count()  by NumCorrectAnswers\r\n| project tostring(toint(NumCorrectAnswers)) , Count\r\n\r\n",
+                    "size": 3,
+                    "showAnalytics": true,
+                    "title": "Breakdown by Number of Correct Answers",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "chartSettings": {
+                      "group": "NumCorrectAnswers",
+                      "createOtherGroup": 10,
+                      "showMetrics": false,
+                      "showLegend": true
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 1",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n    and isnotempty(TemplateName)\r\n|  where ( ('{Template_Name}') == \"*\" or TemplateName == ('{Template_Name}'))\r\n//| summarize by Email, TemplateName, NumIncorrectAnswers\r\n| summarize Count = count()  by NumIncorrectAnswers\r\n| project tostring(toint(NumIncorrectAnswers)) , Count\r\n\r\n",
+                    "size": 3,
+                    "showAnalytics": true,
+                    "title": "Breakdown by Number of Incorrect Answers",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "chartSettings": {
+                      "group": "NumIncorrectAnswers",
+                      "createOtherGroup": 10,
+                      "showMetrics": false,
+                      "showLegend": true
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 1",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n    and isnotempty(TemplateName)\r\n|  where ( ('{Template_Name}') == \"*\" or TemplateName == ('{Template_Name}'))\r\n//| summarize by Email, TemplateName, ClickedIp\r\n| summarize Count = count()  by ClickedIp\r\n| project tostring(ClickedIp) , Count\r\n\r\n",
+                    "size": 3,
+                    "showAnalytics": true,
+                    "title": "Breakdown by Clicked Ip",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "piechart",
+                    "chartSettings": {
+                      "group": "ClickedIp",
+                      "createOtherGroup": 10,
+                      "showMetrics": false,
+                      "showLegend": true
+                    }
+                  },
+                  "customWidth": "33",
+                  "name": "query - 1",
+                  "styleSettings": {
+                    "maxWidth": "33%"
+                  }
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "#### 📝***Refresh the web page to fetch details of recently collected events***\r\n"
+                  },
+                  "name": "text - 5 - Copy"
+                }
+              ]
+            },
+            "conditionalVisibility": {
+              "parameterName": "setTab",
+              "comparison": "isEqualTo",
+              "value": "AwarenessTraining"
+            },
+            "name": "group - 3",
+            "styleSettings": {
+              "padding": "10px"
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "setTab",
+        "comparison": "isEqualTo",
+        "value": "AwarenessTraining"
+      },
+      "name": "group - 1",
+      "styleSettings": {
+        "padding": "10px"
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "f9053e40-ba9b-40ed-afe4-8ab6731de894",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Time_Range",
+                  "label": "Time Range",
+                  "type": 4,
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 300000
+                      },
+                      {
+                        "durationMs": 900000
+                      },
+                      {
+                        "durationMs": 1800000
+                      },
+                      {
+                        "durationMs": 3600000
+                      },
+                      {
+                        "durationMs": 14400000
+                      },
+                      {
+                        "durationMs": 43200000
+                      },
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 172800000
+                      },
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "value": {
+                    "durationMs": 1209600000
+                  }
+                },
+                {
+                  "id": "2025c297-a05f-43e6-8af9-f24122e95e81",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Email",
+                  "type": 1,
+                  "query": "print tostring('*')",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "conditionalVisibility": {
+              "parameterName": "dafsaf",
+              "comparison": "isNotEqualTo"
+            },
+            "name": "parameters - 0 - Copy"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "setTab",
+        "comparison": "isEqualTo",
+        "value": "AwarenessTraining"
+      },
+      "name": "group - 4",
+      "styleSettings": {
+        "padding": "10px"
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "6a8902e3-d3e9-4465-9976-aaf29c1db37d",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Time_Range",
+                  "label": "Time Range",
+                  "type": 4,
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 300000
+                      },
+                      {
+                        "durationMs": 900000
+                      },
+                      {
+                        "durationMs": 1800000
+                      },
+                      {
+                        "durationMs": 3600000
+                      },
+                      {
+                        "durationMs": 14400000
+                      },
+                      {
+                        "durationMs": 43200000
+                      },
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 172800000
+                      },
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "value": {
+                    "durationMs": 1209600000
+                  }
+                },
+                {
+                  "id": "316968d2-96df-4bb9-acf7-b04a018c203f",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Email",
+                  "type": 1,
+                  "query": "print tostring('*')",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 0 - Copy"
+          },
+          {
+            "type": 12,
+            "content": {
+              "version": "NotebookGroup/1.0",
+              "groupType": "editable",
+              "items": [
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessSafeScore\r\n| where ('{Email}' == \"*\" or EmailAddress == '{Email}') and isnotempty(EmailAddress)\r\n| summarize Count = count() by Risk\r\n| order by Risk desc\r\n| take 1",
+                    "size": 3,
+                    "title": "Highest Risk",
+                    "timeContextFromParameter": "Time_Range",
+                    "exportFieldName": "Risk",
+                    "exportParameterName": "HighestRisk",
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "tiles",
+                    "tileSettings": {
+                      "titleContent": {
+                        "formatter": 1
+                      },
+                      "leftContent": {
+                        "columnMatch": "Risk",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "palette": "auto"
+                        }
+                      },
+                      "rightContent": {
+                        "columnMatch": "Count",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "min": 0,
+                          "palette": "turquoise"
+                        }
+                      },
+                      "showBorder": false
+                    },
+                    "textSettings": {
+                      "style": "bignumber"
+                    }
+                  },
+                  "name": "query - 5"
+                },
+                {
+                  "type": 1,
+                  "content": {
+                    "json": "💡 To view Risk details, please click on above tile"
+                  },
+                  "conditionalVisibility": {
+                    "parameterName": "HighestRisk",
+                    "comparison": "isEqualTo"
+                  },
+                  "name": "text - 12"
+                },
+                {
+                  "type": 3,
+                  "content": {
+                    "version": "KqlItem/1.0",
+                    "query": "AwarenessSafeScore\r\n| where ('{Email}' == \"*\" or EmailAddress == '{Email}') and isnotempty(EmailAddress)\r\n|project [\"Email Address\"] = EmailAddress , Name , Risk , [\"Human Error\"] = HumanError, Sentiment, Engagement , Knowledge , UserState\r\n| order by Risk desc\r\n//| take 1",
+                    "size": 0,
+                    "showAnalytics": true,
+                    "title": "Highest Risk Details",
+                    "timeContextFromParameter": "Time_Range",
+                    "showRefreshButton": true,
+                    "showExportToExcel": true,
+                    "queryType": 0,
+                    "resourceType": "microsoft.operationalinsights/workspaces",
+                    "visualization": "table",
+                    "gridSettings": {
+                      "filter": true
+                    },
+                    "tileSettings": {
+                      "titleContent": {
+                        "columnMatch": "Risk",
+                        "formatter": 1
+                      },
+                      "leftContent": {
+                        "columnMatch": "Count",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "palette": "auto"
+                        }
+                      },
+                      "showBorder": false
+                    },
+                    "textSettings": {
+                      "style": "bignumber"
+                    }
+                  },
+                  "conditionalVisibility": {
+                    "parameterName": "HighestRisk",
+                    "comparison": "isNotEqualTo"
+                  },
+                  "name": "query - 5 - Copy",
+                  "styleSettings": {
+                    "margin": "5px",
+                    "showBorder": true
+                  }
+                }
+              ]
+            },
+            "name": "group - 12"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessSafeScore\r\n| where ('{Email}' == \"*\" or EmailAddress == '{Email}') and isnotempty(EmailAddress)\r\n//| where ( '{Email}' == EmailAddress ) or isnotempty(EmailAddress)\r\n| summarize Count = count() by Risk\r\n| project Risk, Count\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Breakdown by Risk",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "group": "Risk",
+                "createOtherGroup": 10,
+                "showMetrics": false,
+                "showLegend": true
+              }
+            },
+            "customWidth": "33",
+            "name": "query - 1",
+            "styleSettings": {
+              "maxWidth": "33%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessSafeScore\r\n| where ('{Email}' == \"*\" or EmailAddress == '{Email}') and isnotempty(EmailAddress)\r\n| summarize Count = count() by HumanError\r\n| project HumanError, Count\r\n\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Breakdown by Human Error",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "group": "HumanError",
+                "createOtherGroup": 10,
+                "showMetrics": false,
+                "showLegend": true
+              }
+            },
+            "customWidth": "33",
+            "name": "query - 1",
+            "styleSettings": {
+              "maxWidth": "33%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessSafeScore\r\n| where ('{Email}' == \"*\" or EmailAddress == '{Email}') and isnotempty(EmailAddress)\r\n| summarize Count = count() by Sentiment\r\n\r\n\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Breakdown by Sentiment",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "group": "Sentiment",
+                "createOtherGroup": 10,
+                "showMetrics": false,
+                "showLegend": true
+              }
+            },
+            "customWidth": "33",
+            "name": "query - 2",
+            "styleSettings": {
+              "maxWidth": "33%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessSafeScore\r\n| where ('{Email}' == \"*\" or EmailAddress == '{Email}') and isnotempty(EmailAddress)\r\n| summarize Count = count() by Engagement\r\n\r\n\r\n\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Breakdown by Engagement",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "group": "Engagement",
+                "createOtherGroup": 10,
+                "showMetrics": false,
+                "showLegend": true
+              }
+            },
+            "customWidth": "33",
+            "name": "query - 3",
+            "styleSettings": {
+              "maxWidth": "33%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessSafeScore\r\n| where ('{Email}' == \"*\" or EmailAddress == '{Email}') and isnotempty(EmailAddress)\r\n| summarize Count = count() by Knowledge\r\n\r\n\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Breakdown by Knowledge",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "group": "Knowledge",
+                "createOtherGroup": 10,
+                "showMetrics": false,
+                "showLegend": true
+              }
+            },
+            "customWidth": "33",
+            "name": "query - 4",
+            "styleSettings": {
+              "maxWidth": "33%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessSafeScore\r\n| where ('{Email}' == \"*\" or EmailAddress == '{Email}') and isnotempty(EmailAddress)\r\n| summarize Count = count() by UserState\r\n\r\n\r\n",
+              "size": 3,
+              "showAnalytics": true,
+              "title": "Breakdown by User State",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "piechart",
+              "chartSettings": {
+                "group": "UserState",
+                "createOtherGroup": 10,
+                "showMetrics": false,
+                "showLegend": true
+              }
+            },
+            "customWidth": "33",
+            "name": "query - 5",
+            "styleSettings": {
+              "maxWidth": "33%"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessSafeScore\r\n| project [\"Email Address\"] = EmailAddress , Name , Risk , [\"Human Error\"] = HumanError, Sentiment, Engagement , Knowledge , UserState",
+              "size": 0,
+              "showAnalytics": true,
+              "title": "Safe Scores Overview",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "rowLimit": 10000,
+                "filter": true
+              }
+            },
+            "name": "query - 8",
+            "styleSettings": {
+              "margin": "5px",
+              "showBorder": true
+            }
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "#### 📝***Refresh the web page to fetch details of recently collected events***\r\n"
+            },
+            "name": "text - 5 - Copy - Copy"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "setTab",
+        "comparison": "isEqualTo",
+        "value": "HumanRisk"
+      },
+      "name": "group - 3",
+      "styleSettings": {
+        "padding": "10px"
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "parameters": [
+                {
+                  "id": "03fcf595-8dee-44c7-9d71-c09a88138a32",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Time_Range",
+                  "label": "Time Range",
+                  "type": 4,
+                  "typeSettings": {
+                    "selectableValues": [
+                      {
+                        "durationMs": 300000
+                      },
+                      {
+                        "durationMs": 900000
+                      },
+                      {
+                        "durationMs": 1800000
+                      },
+                      {
+                        "durationMs": 3600000
+                      },
+                      {
+                        "durationMs": 14400000
+                      },
+                      {
+                        "durationMs": 43200000
+                      },
+                      {
+                        "durationMs": 86400000
+                      },
+                      {
+                        "durationMs": 172800000
+                      },
+                      {
+                        "durationMs": 259200000
+                      },
+                      {
+                        "durationMs": 604800000
+                      },
+                      {
+                        "durationMs": 1209600000
+                      },
+                      {
+                        "durationMs": 2419200000
+                      },
+                      {
+                        "durationMs": 2592000000
+                      },
+                      {
+                        "durationMs": 5184000000
+                      },
+                      {
+                        "durationMs": 7776000000
+                      }
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 86400000
+                  },
+                  "value": {
+                    "durationMs": 1209600000
+                  }
+                },
+                {
+                  "id": "41460584-1c2c-4af8-9aab-086bb8aff8eb",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Email",
+                  "type": 1,
+                  "query": "print tostring('*')",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                },
+                {
+                  "id": "60c9f43c-715b-4e3f-9af7-38d467ae7993",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "Template_Name",
+                  "label": "Template Name",
+                  "type": 2,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n| where isnotempty(TemplateName)\r\n| distinct TemplateName\r\n| sort by TemplateName asc",
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ],
+                    "selectAllValue": "*",
+                    "showDefault": false
+                  },
+                  "timeContext": {
+                    "durationMs": 2419200000
+                  },
+                  "timeContextFromParameter": "Time_Range",
+                  "defaultValue": "value::all",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 0 - Copy - Copy"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessUserData\r\n| where ('{Email}' == \"*\" or Email == '{Email}') \r\n    and isnotempty(Email)\r\n| summarize by Email, TemplateName\r\n| summarize Count = count() by TemplateName\r\n| order by Count desc\r\n| take 10\r\n| project TemplateName, Count\r\n",
+              "size": 0,
+              "showAnalytics": true,
+              "title": "Breakdown of Top 10 Template Names ",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "visualization": "categoricalbar"
+            },
+            "name": "query - 6"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessUserData\r\n| where  Status == \"CLICKED\"\r\n| summarize arg_max(ReactionTime, *) by Email, TemplateName\r\n|extend ['Reaction Time'] = ReactionTime, ['Time Clicked'] = TimeClicked , ['Time Opened'] = TimeOpened , ['Template Name'] = TemplateName \r\n| project Email, ['Reaction Time'],  ['Time Clicked'] ,  ['Time Opened'], ['Template Name']\r\n| order by ['Reaction Time'] asc \r\n",
+              "size": 0,
+              "showAnalytics": true,
+              "title": "Users Clicked on Phishing data",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "rowLimit": 10000,
+                "filter": true
+              }
+            },
+            "name": "query - 7",
+            "styleSettings": {
+              "margin": "5px",
+              "showBorder": true
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "AwarenessUserData\r\n| project Name,  Email, [\"Template Name\"] = TemplateName,Status, [\"Number of Campaigns Clicked\"] = NumCampaignsClicked, [\"Number of Campaigns Sent\"] = NumCampaignsSent, [\"Number of Correct Answers\"] = NumCorrectAnswers, [\"Number of Incorrect Answers\"] = NumIncorrectAnswers, [\"Number of Training Modules Assigned\"] = NumTrainingModulesAssigned, [\"User State\"] = UserState, [\"Clicked IP\"] = ClickedIp, [\"Reaction Time\"] = ReactionTime, [\"Time Clicked\"] = TimeClicked, [\"Time Opened\"] = TimeOpened",
+              "size": 0,
+              "showAnalytics": true,
+              "title": "User Stats Overview",
+              "timeContextFromParameter": "Time_Range",
+              "showRefreshButton": true,
+              "showExportToExcel": true,
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "gridSettings": {
+                "rowLimit": 10000,
+                "filter": true
+              }
+            },
+            "name": "query - 9 - Copy",
+            "styleSettings": {
+              "margin": "5px",
+              "showBorder": true
+            }
+          },
+          {
+            "type": 1,
+            "content": {
+              "json": "#### 📝***Refresh the web page to fetch details of recently collected events***\r\n"
+            },
+            "name": "text - 4"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "setTab",
+        "comparison": "isEqualTo",
+        "value": "PhishingTraining"
+      },
+      "name": "group - 11"
+    }
+  ],
+  "fromTemplateId": "sentinel-UserWorkbook",
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

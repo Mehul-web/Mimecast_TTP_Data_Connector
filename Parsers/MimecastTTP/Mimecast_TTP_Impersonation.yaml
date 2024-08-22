@@ -1,0 +1,68 @@
+id: 50371940-df79-4db6-8bd9-267379ae0e31
+Function:
+  Title: Parser for Mimecast TTP Impersonation
+  Version: "1.0.0"
+  LastUpdated: "2024-07-15"
+Category: Microsoft Sentinel Parser
+FunctionName: MimecastTTPImpersonation
+FunctionAlias: MimecastTTPImpersonation
+FunctionQuery: |
+  let dummy_table = datatable(TimeGenerated: datetime, id_s: string) [];
+  let MimecastTTPImpersonation = view() {
+  union isfuzzy=true dummy_table,
+  Ttp_Impersonation_CL
+  | summarize arg_max(TimeGenerated, *) by id_s
+  | extend Category = column_ifexists('Category', ''),
+      Computer = column_ifexists('Computer', ''),
+      MG = column_ifexists('MG', ''),
+      ManagementGroupName = column_ifexists('ManagementGroupName', ''),
+      RawData = column_ifexists('RawData', ''),
+      SourceSystem = column_ifexists('SourceSystem', ''),
+      TenantId = column_ifexists('TenantId', ''),
+      TimeGenerated  = column_ifexists('TimeGenerated', ''),
+      Type = column_ifexists('Type', ''),
+      _ResourceId = column_ifexists('_ResourceId', ''),
+      Mimecast_Event_ID = 'ttp_impersonation',
+      Mimecast_Event_Category = 'ttp_impersonation',
+      Action = column_ifexists('action_s',''),
+      Definition = column_ifexists('definition_s',''),
+      EventTime = column_ifexists('eventTime_t',''),
+      Hits = column_ifexists('hits_d',''),
+      ID = column_ifexists('id_s',''),
+      Identifiers = column_ifexists('identifiers_s',''),
+      ImpersonationResults = column_ifexists('impersonationResults_s',''),
+      MessageID = column_ifexists('messageId_s',''),
+      RecipientAddress = column_ifexists('recipientAddress_s',''),
+      SenderAddress = column_ifexists('senderAddress_s',''),
+      SenderIPAddress = column_ifexists('senderIpAddress_s',''),
+      Subject = column_ifexists('subject_s',''),
+      TaggedExternal = column_ifexists('taggedExternal_b',''),
+      TaggedMalicious = column_ifexists('taggedMalicious_b','')
+  | project TimeGenerated,
+      ID,
+      Mimecast_Event_ID,
+      Mimecast_Event_Category,
+      Action,
+      Definition,
+      EventTime,
+      Hits,
+      Identifiers,
+      ImpersonationResults,
+      MessageID,
+      RecipientAddress,
+      SenderAddress,
+      SenderIPAddress,
+      Subject,
+      TaggedExternal,
+      TaggedMalicious,
+      Category,
+      MG,
+      ManagementGroupName,
+      SourceSystem,
+      TenantId,
+      _ResourceId,
+      Computer,
+      RawData,
+      Type
+  };
+  MimecastTTPImpersonation

@@ -1,0 +1,32 @@
+id: bf754aad-692b-46cd-b5b4-6f044bd105a4
+Function:
+  Title: Parser for Mimecast Awareness Training User Data
+  Version: '1.0.0'
+  LastUpdated: '2024-07-27'
+Category: Microsoft Sentinel Parser
+FunctionName: AwarenessUserData
+FunctionAlias: AwarenessUserData
+FunctionQuery: |
+  let dummy_table = datatable(TimeGenerated: datetime) [];
+  let Awareness_User_Data_view = view() {
+  union isfuzzy=true dummy_table,
+  Awareness_User_Data_CL
+  | extend TimeGenerated = column_ifexists('TimeGenerated', ''),
+  TimeReported = column_ifexists('timeReported_t', ''),
+  Name = column_ifexists('name_s', ''),
+  Email = column_ifexists('email_s', ''),
+  TemplateName = column_ifexists('templateName_s', ''),
+  Status = column_ifexists('status_s', ''),
+  NumCampaignsClicked = column_ifexists('numCampaignsClicked_d', ''),
+  NumCampaignsSent = column_ifexists('numCampaignsSent_d', ''),
+  NumCorrectAnswers = column_ifexists('numCorrectAnswers_d', ''),
+  NumTrainingModulesAssigned = column_ifexists('numTrainingModulesAssigned_d', ''),
+  NumIncorrectAnswers = column_ifexists('numIncorrectAnswers_d', ''),
+  UserState = column_ifexists('userState_s', ''),
+  ClickedIp = column_ifexists('clickedIp_s', ''),
+  ReactionTime = column_ifexists('reactionTime_d', ''),
+  TimeOpened = column_ifexists('timeOpened_t', ''),
+  TimeClicked = column_ifexists('timeClicked_t', '')
+  | project TimeGenerated, TimeReported, Name, Email, TemplateName, Status, NumCampaignsClicked, NumCampaignsSent, NumCorrectAnswers, NumTrainingModulesAssigned, NumIncorrectAnswers, UserState, ClickedIp, ReactionTime, TimeOpened, TimeClicked
+  };
+  Awareness_User_Data_view

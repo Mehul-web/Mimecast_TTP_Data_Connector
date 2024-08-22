@@ -1,0 +1,26 @@
+id: 1cdd670a-dec9-4d15-97a1-75043a1e631a
+Function:
+  Title: Parser for Mimecast SEG Data Leak Prevention
+  Version: "1.0.0"
+  LastUpdated: "2024-07-25"
+Category: Microsoft Sentinel Parser
+FunctionName: MimecastDLP
+FunctionAlias: MimecastDLP
+FunctionQuery: |
+  let dummy_table = datatable(TimeGenerated: datetime) [];
+  let MimecastSEG_view = view() {
+  union isfuzzy=true dummy_table,
+  Seg_Dlp_CL
+  | extend SenderAddress = column_ifexists('senderAddress_s', ''),
+      RecipientAddress = column_ifexists('recipientAddress_s', ''),
+      Subject = column_ifexists('subject_s', ''),
+      EventTime = column_ifexists('eventTime_t', ''),
+      Route = column_ifexists('route_s', ''),
+      Policy = column_ifexists('policy_s',''),
+      Action = column_ifexists('action_s',''),
+      MessageId = column_ifexists('messageId_s',''),
+      TimeGenerated = column_ifexists('TimeGenerated','')
+  | summarize arg_max(TimeGenerated,*) by SenderAddress ,RecipientAddress , Subject, Route , Policy , Action , EventTime , MessageId
+  | project TimeGenerated ,SenderAddress ,RecipientAddress , Subject, Route , Policy , Action , EventTime , MessageId
+  };
+  MimecastSEG_view

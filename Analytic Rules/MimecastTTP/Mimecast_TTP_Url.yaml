@@ -1,0 +1,52 @@
+id: "952faed4-c6a6-4873-aeb9-b348e9ce5aba"
+name: "Mimecast Targeted Threat Protection - URL Protect"
+description: |
+  'Detects malicious scan results and actions which are not allowed.'
+severity: High
+status: Available
+requiredDataConnectors:
+  - connectorId: MimecastTTPAPI
+    dataTypes:
+      - MimecastTTPUrl
+queryFrequency: 5m
+queryPeriod: 5m
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+- Discovery
+relevantTechniques:
+- T0865
+query: |
+  MimecastTTPUrl
+  | where ScanResult == "malicious" and Action != "allow"
+suppressionDuration: 5h
+suppressionEnabled: false
+incidentConfiguration:
+  createIncident: true
+  groupingConfiguration:
+    enabled: true
+    reopenClosedIncident: false
+    lookbackDuration: P7D
+    matchingMethod: AllEntities
+eventGroupingSettings:
+  aggregationKind: AlertPerResult
+entityMappings:
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SendingIP
+  - entityType: MailMessage
+    fieldMappings:
+      - identifier: Sender
+        columnName: From_User_EmailAddress
+      - identifier: InternetMessageId
+        columnName: MessageID
+      - identifier: Recipient
+        columnName: User_EmailAddress
+  - entityType: URL
+    fieldMappings:
+      - identifier: Url
+        columnName: Url
+version: 1.0.0
+kind: Scheduled
