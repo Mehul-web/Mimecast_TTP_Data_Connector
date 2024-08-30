@@ -205,7 +205,7 @@
                         "File_Share_Name": "mimecast-checkpoints",
                         "Schedule": "[trim(parameters('Schedule'))]",
                         "LogLevel": "[trim(parameters('LogLevel'))]",
-                        "WEBSITE_RUN_FROM_PACKAGE": "https://aka.ms/sentinel-MimecastAT-functionapp"
+                        "WEBSITE_RUN_FROM_PACKAGE": "https://github.com/Mehul-web/Mimecast_TTP_Data_Connector/raw/main/Data%20Connectors/MimecastAT/MimecastAT.zip"
                     }
                 }
             ]
