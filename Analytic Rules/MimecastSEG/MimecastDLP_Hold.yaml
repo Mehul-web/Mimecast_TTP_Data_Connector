@@ -7,8 +7,11 @@ requiredDataConnectors:
     dataTypes:
       - MimecastDLP
 enabled: true
-query: MimecastDLP | where Action == "hold";
-queryFrequency: 5m
+query: |
+  MimecastDLP 
+  | where Action == "hold"
+  | extend SenderAddress = ['Sender Address'] ,RecipientAddress = ['Recipient Address']
+queryFrequency: 15m
 queryPeriod: 15m
 triggerOperator: gt
 triggerThreshold: 0

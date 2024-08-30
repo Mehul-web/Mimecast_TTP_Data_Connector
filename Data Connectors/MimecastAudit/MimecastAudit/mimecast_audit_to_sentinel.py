@@ -433,6 +433,9 @@ class MimeCastAuditToSentinel(Utils):
                         )
                     )
                 else:
+                    checkpoint = self.checkpoint_field()
+                    start_date = checkpoint.get("start_time")
+                    end_date = checkpoint.get("end_time")
                     self.update_date_in_checkpoint()
                     applogger.info(
                         self.log_format.format(

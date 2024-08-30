@@ -8,8 +8,8 @@ requiredDataConnectors:
   - connectorId: MimecastTTPAPI
     dataTypes:
       - MimecastTTPImpersonation
-queryFrequency: 5m
-queryPeriod: 5m
+queryFrequency: 30m
+queryPeriod: 30m
 triggerOperator: gt
 triggerThreshold: 0
 tactics:
@@ -20,7 +20,10 @@ relevantTechniques:
 - T1114
 query: |
   MimecastTTPImpersonation
-  | where TaggedMalicious == true
+  | where ['Tagged Malicious'] == true
+  | extend SenderAddress = ['Sender Address'],
+    SenderIPAddress = ['Sender IP Address'],
+    RecipientAddress = ['Recipient Address']
 suppressionDuration: 5h
 suppressionEnabled: false
 incidentConfiguration:

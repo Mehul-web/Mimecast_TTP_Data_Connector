@@ -10,9 +10,10 @@ requiredDataConnectors:
 enabled: true
 query: |
   MimecastAudit 
-  | where SourceIp !="" and AuditType == "Logon Authentication Failed"
-queryFrequency: 5m
-queryPeriod: 15m
+  | where ['Source IP'] !="" and ['Audit Type'] == "Logon Authentication Failed"
+  | extend   SourceIp = ['Source IP'] 
+queryFrequency: 30m
+queryPeriod: 30m
 triggerOperator: gt
 triggerThreshold: 3
 suppressionDuration: 5h

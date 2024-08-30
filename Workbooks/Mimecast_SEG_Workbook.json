@@ -180,7 +180,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type ==\"email_delivery\"\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Count=count() default=0 on DateTime step 1d by Direction",
+              "query": "MimecastCG\r\n| where Type ==\"email_delivery\"\r\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Direction",
               "size": 0,
               "showAnalytics": true,
               "title": "Email Traffic",
@@ -200,7 +200,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "let min_t = toscalar(\r\n    MimecastCG \r\n    | where Type == \"email_receipt\" and isnotempty(RejectionType)\r\n    | extend Timestamp = coalesce(toint(Timestamp), 1)\r\n    | extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp)) \r\n    | summarize min_time = min(DateTime)\r\n    | extend min_t = iff(isempty(min_time),now(),min_time)\r\n    | project min_t);\r\nMimecastCG \r\n| where Type == \"email_receipt\" and isnotempty(RejectionType) \r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp)) \r\n| make-series Trend = count() default = 0 on DateTime from min_t to now() step 1d by tostring(RejectionType) \r\n| project-away DateTime \r\n| extend Count = array_sum(Trend) \r\n| project ['Rejection Type'] = RejectionType, Count, ['Spark Line'] = Trend \r\n| order by Count desc",
+              "query": "let min_t = toscalar(\r\n    MimecastCG \r\n    | where Type == \"email_receipt\" and isnotempty(['Rejection Type'])\r\n    | summarize min_time = min(['Event Time'])\r\n    | extend min_t = iff(isempty(min_time),now(),min_time)\r\n    | project min_t);\r\nMimecastCG \r\n| where Type == \"email_receipt\" and isnotempty(['Rejection Type']) \r\n| make-series Trend = count() default = 0 on ['Event Time'] from min_t to now() step 1d by tostring(['Rejection Type']) \r\n| project-away ['Event Time'] \r\n| extend Count = array_sum(Trend) \r\n| project ['Rejection Type'] , Count, ['Spark Line'] = Trend \r\n| order by Count desc",
               "size": 0,
               "showAnalytics": true,
               "title": "Rejections",
@@ -240,7 +240,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "\r\nlet min_t = toscalar(\r\n    MimecastCG \r\n    | where Type == \"email_delivery\" and isnotempty(RejectionType)\r\n    | extend Timestamp = coalesce(toint(Timestamp), 1)\r\n    | extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp)) \r\n    | summarize min_time = min(DateTime)\r\n    | extend min_t = iff(isempty(min_time),now(),min_time)\r\n    | project min_t);\r\nMimecastCG \r\n| where Type == \"email_delivery\" and isnotempty(RejectionType)\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp)) \r\n| make-series Trend = count() default = 0 on DateTime from min_t to now() step 1d by tostring(RejectionType) \r\n| project-away DateTime \r\n| extend Count = array_sum(Trend) \r\n| project ['Rejection Type'] = RejectionType, Count, ['Spark Line'] = Trend \r\n| order by Count desc",
+              "query": "\r\nlet min_t = toscalar(\r\n    MimecastCG \r\n    | where Type == \"email_delivery\" and isnotempty(['Rejection Type'])\r\n    | summarize min_time = min(['Event Time'])\r\n    | extend min_t = iff(isempty(min_time),now(),min_time)\r\n    | project min_t);\r\nMimecastCG \r\n| where Type == \"email_delivery\" and isnotempty(['Rejection Type'])\r\n| make-series Trend = count() default = 0 on ['Event Time'] from min_t to now() step 1d by tostring(['Rejection Type']) \r\n| project-away ['Event Time'] \r\n| extend Count = array_sum(Trend) \r\n| project ['Rejection Type'], Count, ['Spark Line'] = Trend \r\n| order by Count desc",
               "size": 0,
               "showAnalytics": true,
               "title": "Delivery Failures",
@@ -280,7 +280,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "let min_t = toscalar(\r\n    MimecastCG\r\n    | where Type == \"email_process\" and isnotempty(HoldReason)\r\n    | extend Timestamp = coalesce(toint(Timestamp), 1)\r\n    | extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n    | summarize min_time = min(DateTime)\r\n    | extend min_t = iff(isempty(min_time),now(),min_time)\r\n    | project min_t);\r\nMimecastCG\r\n| where Type == \"email_process\" and isnotempty(HoldReason)\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Trend = count() default = 0 on TimeGenerated from min_t to now() step 1d by tostring(HoldReason)\r\n| project-away TimeGenerated\r\n| extend Count=array_sum(Trend)\r\n| project ['Hold Reason']=HoldReason, Count,['Spark Line'] = Trend\r\n| order by Count desc",
+              "query": "let min_t = toscalar(\r\n    MimecastCG\r\n    | where Type == \"email_process\" and isnotempty(['Hold Reason'])\r\n    | summarize min_time = min(['Event Time'])\r\n    | extend min_t = iff(isempty(min_time),now(),min_time)\r\n    | project min_t);\r\nMimecastCG\r\n| where Type == \"email_process\" and isnotempty(['Hold Reason'])\r\n| make-series Trend = count() default = 0 on ['Event Time'] from min_t to now() step 1d by tostring(['Hold Reason'])\r\n| project-away ['Event Time']\r\n| extend Count=array_sum(Trend)\r\n| project ['Hold Reason'], Count,['Spark Line'] = Trend\r\n| order by Count desc",
               "size": 0,
               "showAnalytics": true,
               "title": "Held",
@@ -419,7 +419,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| summarize  count() by Direction, Action, SenderIp\r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
+                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| summarize  count() by Direction, Action, ['Sender IP']\r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Total Messages Received",
@@ -440,7 +440,6 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "tiles",
                     "tileSettings": {
-                      "titleContent": {},
                       "leftContent": {
                         "columnMatch": "TotalCount",
                         "formatter": 12,
@@ -463,7 +462,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| where Action in~ (\"Acc\", \"RTY\")\r\n| summarize  count() by Direction, Action, SenderIp\r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_\r\n\r\n//Acc and Rty are considered as delivered",
+                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| where Action in~ (\"Acc\", \"RTY\")\r\n| summarize  count() by Direction, Action, ['Sender IP']\r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_\r\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Total Messages Accepted",
@@ -484,7 +483,6 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "tiles",
                     "tileSettings": {
-                      "titleContent": {},
                       "leftContent": {
                         "columnMatch": "TotalCount",
                         "formatter": 12,
@@ -507,7 +505,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| where Action in~ (\"REJ\", \"BNC\")\r\n| summarize  count() by Direction, Action, SenderIp\r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_\r\n\r\n// Rej and Bnc are considered as blocked",
+                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| where Action in~ (\"REJ\", \"BNC\")\r\n| summarize  count() by Direction, Action, ['Sender IP']\r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_\r\n\r\n// Rej and Bnc are considered as blocked",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Total Messages Rejected",
@@ -528,7 +526,6 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "tiles",
                     "tileSettings": {
-                      "titleContent": {},
                       "leftContent": {
                         "columnMatch": "TotalCount",
                         "formatter": 12,
@@ -551,7 +548,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"Acc\", \"RTY\")\r\n| where isempty(TlsVersion)\r\n| summarize  count() by Direction, Action, SenderIp\r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_\r\n\r\n//Acc and Rty are considered as delivered",
+                    "query": "MimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"Acc\", \"RTY\")\r\n| where isempty( ['TLS Version'])\r\n| summarize  count() by Direction, Action, ['Sender IP']\r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_\r\n\r\n//Acc and Rty are considered as delivered",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Total Messages Accepted without TLS",
@@ -572,7 +569,6 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "tiles",
                     "tileSettings": {
-                      "titleContent": {},
                       "leftContent": {
                         "columnMatch": "TotalCount",
                         "formatter": 12,
@@ -606,7 +602,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| project  \r\n['Aggregate ID'] = AggregateId,\r\n['Processing ID'] = ProcessingId,\r\n['Account ID'] = AccountId,\r\n['Action'] = Action,\r\n['Type'] = Type,\r\n['Sender Envelope'] = SenderEnvelope,\r\n['Message ID'] = MessageId,\r\n['Subject'] = Subject,\r\n['Recipients'] = Recipients,\r\n['Sender IP'] = SenderIp,\r\n['Rejection Type'] = RejectionType,\r\n['Rejection Code'] = RejectionCode,\r\n['Direction'] = Direction,\r\n['Number Attachments'] = NumberAttachments,\r\n['Sender Header'] = SenderHeader,\r\n['Rejection Info'] = RejectionInfo,\r\n['TLS Version'] = TlsVersion,\r\n['TLS Cipher'] = TlsCipher,\r\n['Spam Info'] = SpamInfo,\r\n['Spam Processing Detail'] = SpamProcessingDetail,\r\n['Virus Found'] = VirusFound,\r\n['Timestamp'] = todatetime(unixtime_milliseconds_todatetime(Timestamp)),\r\n['Sub Type'] = Subtype",
+                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| project  ['Aggregate ID'] ,\r\n['Processing ID'],\r\n['Account ID'] ,\r\n['Action'],\r\n['Type'],\r\n['Sender Envelope'] ,\r\n['Message ID'] ,\r\n['Subject'],\r\n['Recipients'] ,\r\n['Sender IP'] ,\r\n['Rejection Type'] ,\r\n['Rejection Code'] ,\r\n['Direction'] ,\r\n['Number of Attachments'] ,\r\n['Sender Header'] ,\r\n['Rejection Info'] ,\r\n[\"TLS Version\"],\r\n[\"TLS Cipher\"],\r\n['Spam Info'] ,\r\n['Spam Processing Detail'] ,\r\n['Virus Found'] ,\r\n['Event Time'] ,\r\n['Sub Type'] ",
                     "size": 0,
                     "showAnalytics": true,
                     "title": "Messages Received",
@@ -634,7 +630,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| where Action in~ (\"Acc\", \"RTY\")\r\n| project  \r\n['Aggregate ID'] = AggregateId,\r\n['Processing ID'] = ProcessingId,\r\n['Account ID'] = AccountId,\r\n['Action'] = Action,\r\n['Type'] = Type,\r\n['Sender Envelope'] = SenderEnvelope,\r\n['Message ID'] = MessageId,\r\n['Subject'] = Subject,\r\n['Recipients'] = Recipients,\r\n['Sender IP'] = SenderIp,\r\n['Rejection Type'] = RejectionType,\r\n['Rejection Code'] = RejectionCode,\r\n['Direction'] = Direction,\r\n['Number Attachments'] = NumberAttachments,\r\n['Sender Header'] = SenderHeader,\r\n['Rejection Info'] = RejectionInfo,\r\n['TLS Version'] = TlsVersion,\r\n['TLS Cipher'] = TlsCipher,\r\n['Spam Info'] = SpamInfo,\r\n['Spam Processing Detail'] = SpamProcessingDetail,\r\n['Virus Found'] = VirusFound,\r\n['Timestamp'] = todatetime(unixtime_milliseconds_todatetime(Timestamp)),\r\n['Sub Type'] = Subtype",
+                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| where Action in~ (\"Acc\", \"RTY\")\r\n| project  ['Aggregate ID'] ,\r\n['Processing ID'],\r\n['Account ID'] ,\r\n['Action'],\r\n['Type'],\r\n['Sender Envelope'] ,\r\n['Message ID'] ,\r\n['Subject'],\r\n['Recipients'] ,\r\n['Sender IP'] ,\r\n['Rejection Type'] ,\r\n['Rejection Code'] ,\r\n['Direction'] ,\r\n['Number of Attachments'] ,\r\n['Sender Header'] ,\r\n['Rejection Info'] ,\r\n[\"TLS Version\"],\r\n[\"TLS Cipher\"],\r\n['Spam Info'] ,\r\n['Spam Processing Detail'] ,\r\n['Virus Found'] ,\r\n['Event Time'] ,\r\n['Sub Type'] ",
                     "size": 0,
                     "showAnalytics": true,
                     "title": "Messages Accepted",
@@ -662,7 +658,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| where Action in~ (\"REJ\", \"BNC\")\r\n| project  \r\n['Aggregate ID'] = AggregateId,\r\n['Processing ID'] = ProcessingId,\r\n['Account ID'] = AccountId,\r\n['Action'] = Action,\r\n['Type'] = Type,\r\n['Sender Envelope'] = SenderEnvelope,\r\n['Message ID'] = MessageId,\r\n['Subject'] = Subject,\r\n['Recipients'] = Recipients,\r\n['Sender IP'] = SenderIp,\r\n['Rejection Type'] = RejectionType,\r\n['Rejection Code'] = RejectionCode,\r\n['Direction'] = Direction,\r\n['Number Attachments'] = NumberAttachments,\r\n['Sender Header'] = SenderHeader,\r\n['Rejection Info'] = RejectionInfo,\r\n['TLS Version'] = TlsVersion,\r\n['TLS Cipher'] = TlsCipher,\r\n['Spam Info'] = SpamInfo,\r\n['Spam Processing Detail'] = SpamProcessingDetail,\r\n['Virus Found'] = VirusFound,\r\n['Timestamp'] = todatetime(unixtime_milliseconds_todatetime(Timestamp)),\r\n['Sub Type'] = Subtype",
+                    "query": "MimecastCG\r\n| where Type== \"email_receipt\"\r\n| where Action in~ (\"REJ\", \"BNC\")\r\n| project  ['Aggregate ID'] ,\r\n['Processing ID'],\r\n['Account ID'] ,\r\n['Action'],\r\n['Type'],\r\n['Sender Envelope'] ,\r\n['Message ID'] ,\r\n['Subject'],\r\n['Recipients'] ,\r\n['Sender IP'] ,\r\n['Rejection Type'] ,\r\n['Rejection Code'] ,\r\n['Direction'] ,\r\n['Number of Attachments'] ,\r\n['Sender Header'] ,\r\n['Rejection Info'] ,\r\n[\"TLS Version\"],\r\n[\"TLS Cipher\"],\r\n['Spam Info'] ,\r\n['Spam Processing Detail'] ,\r\n['Virus Found'] ,\r\n['Event Time'] ,\r\n['Sub Type'] ",
                     "size": 0,
                     "showAnalytics": true,
                     "title": "Messages Rejected",
@@ -690,7 +686,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"Acc\", \"RTY\")\r\n| where isempty(TlsVersion)\r\n| project  \r\n['Aggregate ID'] = AggregateId,\r\n['Processing ID'] = ProcessingId,\r\n['Account ID'] = AccountId,\r\n['Action'] = Action,\r\n['Type'] = Type,\r\n['Sender Envelope'] = SenderEnvelope,\r\n['Message ID'] = MessageId,\r\n['Subject'] = Subject,\r\n['Recipients'] = Recipients,\r\n['Sender IP'] = SenderIp,\r\n['Rejection Type'] = RejectionType,\r\n['Rejection Code'] = RejectionCode,\r\n['Direction'] = Direction,\r\n['Number Attachments'] = NumberAttachments,\r\n['Sender Header'] = SenderHeader,\r\n['Rejection Info'] = RejectionInfo,\r\n['TLS Version'] = TlsVersion,\r\n['TLS Cipher'] = TlsCipher,\r\n['Spam Info'] = SpamInfo,\r\n['Spam Processing Detail'] = SpamProcessingDetail,\r\n['Virus Found'] = VirusFound,\r\n['Timestamp'] = todatetime(unixtime_milliseconds_todatetime(Timestamp)),\r\n['Sub Type'] = Subtype",
+                    "query": "MimecastCG\r\n| where Type == \"email_receipt\" and Action in~ (\"Acc\", \"RTY\")\r\n| where isempty([\"TLS Version\"])\r\n| project  \r\n['Aggregate ID'] ,\r\n['Processing ID'] ,\r\n['Account ID'],\r\n['Action'],\r\n['Type'],\r\n['Sender Envelope'],\r\n['Message ID'] ,\r\n['Subject'] ,\r\n['Recipients'] ,\r\n['Sender IP'] ,\r\n['Rejection Type'] ,\r\n['Rejection Code'] ,\r\n['Direction'] ,\r\n['Number of Attachments'] ,\r\n['Sender Header'] ,\r\n['Rejection Info'],\r\n[\"TLS Version\"],\r\n[\"TLS Cipher\"],\r\n['Spam Info'] ,\r\n['Spam Processing Detail'] ,\r\n['Virus Found'] ,\r\n['Event Time'],\r\n['Sub Type']",
                     "size": 0,
                     "showAnalytics": true,
                     "title": "Messages Accepted without TLS",
@@ -722,7 +718,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"Acc\", \"RTY\")\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Count=count() default=0 on DateTime step 1d by Direction",
+              "query": "MimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"Acc\", \"RTY\")\r\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Direction",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Accepted by Route",
@@ -742,7 +738,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "//Acc and Rty are considered as delivered\r\n\r\nMimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"Acc\", \"RTY\") and isnotempty( SenderIp)\r\n| extend senderGeoDetails = geo_info_from_ip_address(SenderIp)\r\n| extend latitude = senderGeoDetails.latitude, longitude = senderGeoDetails.longitude, country = senderGeoDetails.country, state = senderGeoDetails.state, city = senderGeoDetails.city\r\n| where isnotempty(latitude) and isnotempty(longitude)\r\n| extend label = strcat(city,\", \",state,\", \",country)\r\n| summarize  count() by tostring(latitude), tostring(longitude), label",
+              "query": "MimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"Acc\", \"RTY\") and isnotempty( ['Sender IP'])\r\n| extend senderGeoDetails = geo_info_from_ip_address(['Sender IP'])\r\n| extend latitude = senderGeoDetails.latitude, longitude = senderGeoDetails.longitude, country = senderGeoDetails.country, state = senderGeoDetails.state, city = senderGeoDetails.city\r\n| where isnotempty(latitude) and isnotempty(longitude)\r\n| extend label = strcat(\r\n    iif(strlen(city) > 0, strcat(city, \", \"), \"\"),\r\n    iif(strlen(state) > 0, strcat(state, \", \"), \"\"),\r\n    country\r\n)\r\n| extend label = trim(\", \", label)\r\n| extend label = iif(strlen(label) > 0, label, \"N/A\")\r\n| summarize  count() by tostring(latitude), tostring(longitude), label",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Accepted by Source Country",
@@ -781,7 +777,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "//REJ and BNC are considered as delivered\r\n\r\nMimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"REJ\", \"BNC\") and isnotempty( SenderIp)\r\n| extend senderGeoDetails = geo_info_from_ip_address(SenderIp)\r\n| extend latitude = senderGeoDetails.latitude, longitude = senderGeoDetails.longitude, country = senderGeoDetails.country, state = senderGeoDetails.state, city = senderGeoDetails.city\r\n| where isnotempty(latitude) and isnotempty(longitude)\r\n| extend label = strcat(city,\", \",state,\", \",country)\r\n| summarize  count() by tostring(latitude), tostring(longitude), label",
+              "query": "MimecastCG\r\n| where Type== \"email_receipt\" and Action in~ (\"REJ\", \"BNC\") and isnotempty( ['Sender IP'])\r\n| extend senderGeoDetails = geo_info_from_ip_address(['Sender IP'])\r\n| extend latitude = senderGeoDetails.latitude, longitude = senderGeoDetails.longitude, country = senderGeoDetails.country, state = senderGeoDetails.state, city = senderGeoDetails.city\r\n| where isnotempty(latitude) and isnotempty(longitude)\r\n| extend label = strcat(\r\n    iif(strlen(city) > 0, strcat(city, \", \"), \"\"),\r\n    iif(strlen(state) > 0, strcat(state, \", \"), \"\"),\r\n    country\r\n)\r\n| extend label = trim(\", \", label)\r\n| extend label = iif(strlen(label) > 0, label, \"N/A\")\r\n| summarize  count() by tostring(latitude), tostring(longitude), label",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Rejected by Source Country",
@@ -913,7 +909,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\"\r\n| summarize  count() by Direction , Delivered , DestinationIp , TlsUsed \r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\"\r\n| summarize  count() by Direction , Delivered , ['Destination IP'] , ['TLS Used'] \r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
               "size": 3,
               "showAnalytics": true,
               "title": "Total Messages Delivered",
@@ -934,7 +930,6 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "tiles",
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "TotalCount",
                   "formatter": 12,
@@ -957,7 +952,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered ==  \"false\"  and Direction == \"Outbound\"\r\n| summarize  count() by Direction , Delivered  , TlsUsed \r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered ==  \"false\"  and Direction == \"Outbound\"\r\n| summarize  count() by Direction , Delivered  , ['TLS Used']  \r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
               "size": 3,
               "showAnalytics": true,
               "title": "Total Outbound Delivery Failures",
@@ -978,7 +973,6 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "tiles",
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "TotalCount",
                   "formatter": 12,
@@ -1002,7 +996,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"false\" and Direction == \"Inbound\"\r\n| summarize  count() by Direction , Delivered , DestinationIp , TlsUsed \r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"false\" and Direction == \"Inbound\"\r\n| summarize  count() by Direction , Delivered , ['Destination IP'] , ['TLS Used']  \r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
               "size": 3,
               "showAnalytics": true,
               "title": "Total Inbound Delivery Failures",
@@ -1023,7 +1017,6 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "tiles",
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "TotalCount",
                   "formatter": 12,
@@ -1047,7 +1040,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\" and TlsUsed == \"No\"\r\n| summarize  count() by Direction , Delivered , DestinationIp , TlsUsed \r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\" and ['TLS Used']  == \"No\"\r\n| summarize  count() by Direction , Delivered , ['Destination IP'] , ['TLS Used'] \r\n| summarize sum(count_)\r\n| project TotalCount = sum_count_",
               "size": 3,
               "showAnalytics": true,
               "title": "Total Messages Delivered without TLS",
@@ -1068,7 +1061,6 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "tiles",
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "TotalCount",
                   "formatter": 12,
@@ -1103,7 +1095,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\"\r\n| project     \r\n    [\"Aggregate ID\"] = AggregateId,\r\n    [\"Processing ID\"] = ProcessingId,\r\n    [\"Delivered\"] = Delivered,\r\n    [\"Destination IP\"] = DestinationIp,\r\n    [\"Hostname\"] = Hostname,\r\n    [\"Delivery Attempts\"] = DeliveryAttempts,\r\n    [\"TLS Used\"] = TlsUsed,\r\n    [\"Route\"] = Route,\r\n    [\"Account ID\"] = AccountId,\r\n    [\"Timestamp\"] = Timestamp,\r\n    [\"Sender Envelope\"] = SenderEnvelope,\r\n    [\"Message ID\"] = MessageId,\r\n    [\"Subject\"] = Subject,\r\n    [\"Total Size Attachments\"] = TotalSizeAttachments,\r\n    [\"Number Attachments\"] = NumberAttachments,\r\n    [\"Email Size\"] = EmailSize,\r\n    [\"Type\"] = Type,\r\n    [\"Subtype\"] = Subtype,\r\n    [\"Recipients\"] = Recipients,\r\n    [\"Direction\"] = Direction,\r\n    [\"TLS Version\"] = TlsVersion,\r\n    [\"TLS Cipher\"] = TlsCipher,\r\n    [\"Delivery Errors\"] = DeliveryErrors,\r\n    [\"Rejection Type\"] = RejectionType,\r\n    [\"Rejection Code\"] = RejectionCode,\r\n    [\"Rejection Info\"] = RejectionInfo\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\"\r\n| project     \r\n    [\"Aggregate ID\"] ,\r\n    [\"Processing ID\"],\r\n    [\"Delivered\"] ,\r\n    [\"Destination IP\"] ,\r\n    [\"Host Name\"],\r\n    [\"Delivery Attempts\"] ,\r\n    [\"TLS Used\"] ,\r\n    [\"Route\"] ,\r\n    [\"Account ID\"] ,\r\n    [\"Event Time\"] ,\r\n    [\"Sender Envelope\"] ,\r\n    [\"Message ID\"] ,\r\n    [\"Subject\"] ,\r\n    [\"Total of Size Attachments\"] ,\r\n    [\"Number of Attachments\"] ,\r\n    [\"Email Size\"] ,\r\n    [\"Type\"] ,\r\n    [\"Sub Type\"] ,\r\n    [\"Recipients\"] ,\r\n    [\"Direction\"] ,\r\n    [\"TLS Version\"] ,\r\n    [\"TLS Cipher\"]  ,\r\n    [\"Delivery Errors\"] ,\r\n    [\"Rejection Type\"] ,\r\n    [\"Rejection Code\"] ,\r\n    [\"Rejection Info\"] \r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Delivered",
@@ -1131,7 +1123,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered ==  \"false\"  and Direction == \"Outbound\"\r\n| project     \r\n    [\"Aggregate ID\"] = AggregateId,\r\n    [\"Processing ID\"] = ProcessingId,\r\n    [\"Delivered\"] = Delivered,\r\n    [\"Destination IP\"] = DestinationIp,\r\n    [\"Hostname\"] = Hostname,\r\n    [\"Delivery Attempts\"] = DeliveryAttempts,\r\n    [\"TLS Used\"] = TlsUsed,\r\n    [\"Route\"] = Route,\r\n    [\"Account ID\"] = AccountId,\r\n    [\"Timestamp\"] = Timestamp,\r\n    [\"Sender Envelope\"] = SenderEnvelope,\r\n    [\"Message ID\"] = MessageId,\r\n    [\"Subject\"] = Subject,\r\n    [\"Total Size Attachments\"] = TotalSizeAttachments,\r\n    [\"Number Attachments\"] = NumberAttachments,\r\n    [\"Email Size\"] = EmailSize,\r\n    [\"Type\"] = Type,\r\n    [\"Subtype\"] = Subtype,\r\n    [\"Recipients\"] = Recipients,\r\n    [\"Direction\"] = Direction,\r\n    [\"TLS Version\"] = TlsVersion,\r\n    [\"TLS Cipher\"] = TlsCipher,\r\n    [\"Delivery Errors\"] = DeliveryErrors,\r\n    [\"Rejection Type\"] = RejectionType,\r\n    [\"Rejection Code\"] = RejectionCode,\r\n    [\"Rejection Info\"] = RejectionInfo\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered ==  \"false\"  and Direction == \"Outbound\"\r\n| project          \r\n    [\"Aggregate ID\"] ,\r\n    [\"Processing ID\"],\r\n    [\"Delivered\"] ,\r\n    [\"Destination IP\"] ,\r\n    [\"Host Name\"] ,\r\n    [\"Delivery Attempts\"] ,\r\n    [\"TLS Used\"] ,\r\n    [\"Route\"] ,\r\n    [\"Account ID\"] ,\r\n    [\"Event Time\"] ,\r\n    [\"Sender Envelope\"] ,\r\n    [\"Message ID\"] ,\r\n    [\"Subject\"] ,\r\n    [\"Total of Size Attachments\"] ,\r\n    [\"Number of Attachments\"] ,\r\n    [\"Email Size\"] ,\r\n    [\"Type\"] ,\r\n    [\"Sub Type\"] ,\r\n    [\"Recipients\"] ,\r\n    [\"Direction\"] ,\r\n    [\"TLS Version\"] ,\r\n    [\"TLS Cipher\"]  ,\r\n    [\"Delivery Errors\"] ,\r\n    [\"Rejection Type\"] ,\r\n    [\"Rejection Code\"] ,\r\n    [\"Rejection Info\"] \r\n\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Outbound Delivery Failures",
@@ -1159,7 +1151,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"false\" and Direction == \"Inbound\"\r\n| project     \r\n    [\"Aggregate ID\"] = AggregateId,\r\n    [\"Processing ID\"] = ProcessingId,\r\n    [\"Delivered\"] = Delivered,\r\n    [\"Destination IP\"] = DestinationIp,\r\n    [\"Hostname\"] = Hostname,\r\n    [\"Delivery Attempts\"] = DeliveryAttempts,\r\n    [\"TLS Used\"] = TlsUsed,\r\n    [\"Route\"] = Route,\r\n    [\"Account ID\"] = AccountId,\r\n    [\"Timestamp\"] = Timestamp,\r\n    [\"Sender Envelope\"] = SenderEnvelope,\r\n    [\"Message ID\"] = MessageId,\r\n    [\"Subject\"] = Subject,\r\n    [\"Total Size Attachments\"] = TotalSizeAttachments,\r\n    [\"Number Attachments\"] = NumberAttachments,\r\n    [\"Email Size\"] = EmailSize,\r\n    [\"Type\"] = Type,\r\n    [\"Subtype\"] = Subtype,\r\n    [\"Recipients\"] = Recipients,\r\n    [\"Direction\"] = Direction,\r\n    [\"TLS Version\"] = TlsVersion,\r\n    [\"TLS Cipher\"] = TlsCipher,\r\n    [\"Delivery Errors\"] = DeliveryErrors,\r\n    [\"Rejection Type\"] = RejectionType,\r\n    [\"Rejection Code\"] = RejectionCode,\r\n    [\"Rejection Info\"] = RejectionInfo\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"false\" and Direction == \"Inbound\"\r\n| project     \r\n       [\"Aggregate ID\"] ,\r\n    [\"Processing ID\"],\r\n    [\"Delivered\"] ,\r\n    [\"Destination IP\"] ,\r\n    [\"Host Name\"] ,\r\n    [\"Delivery Attempts\"] ,\r\n    [\"TLS Used\"] ,\r\n    [\"Route\"] ,\r\n    [\"Account ID\"] ,\r\n    [\"Event Time\"] ,\r\n    [\"Sender Envelope\"] ,\r\n    [\"Message ID\"] ,\r\n    [\"Subject\"] ,\r\n    [\"Total of Size Attachments\"] ,\r\n    [\"Number of Attachments\"] ,\r\n    [\"Email Size\"] ,\r\n    [\"Type\"] ,\r\n    [\"Sub Type\"] ,\r\n    [\"Recipients\"] ,\r\n    [\"Direction\"] ,\r\n    [\"TLS Version\"] ,\r\n    [\"TLS Cipher\"]  ,\r\n    [\"Delivery Errors\"] ,\r\n    [\"Rejection Type\"] ,\r\n    [\"Rejection Code\"] ,\r\n    [\"Rejection Info\"] \r\n\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Inbound Delivery Failures",
@@ -1187,7 +1179,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\" and TlsUsed == \"No\"\r\n| project     \r\n    [\"Aggregate ID\"] = AggregateId,\r\n    [\"Processing ID\"] = ProcessingId,\r\n    [\"Delivered\"] = Delivered,\r\n    [\"Destination IP\"] = DestinationIp,\r\n    [\"Hostname\"] = Hostname,\r\n    [\"Delivery Attempts\"] = DeliveryAttempts,\r\n    [\"TLS Used\"] = TlsUsed,\r\n    [\"Route\"] = Route,\r\n    [\"Account ID\"] = AccountId,\r\n    [\"Timestamp\"] = Timestamp,\r\n    [\"Sender Envelope\"] = SenderEnvelope,\r\n    [\"Message ID\"] = MessageId,\r\n    [\"Subject\"] = Subject,\r\n    [\"Total Size Attachments\"] = TotalSizeAttachments,\r\n    [\"Number Attachments\"] = NumberAttachments,\r\n    [\"Email Size\"] = EmailSize,\r\n    [\"Type\"] = Type,\r\n    [\"Subtype\"] = Subtype,\r\n    [\"Recipients\"] = Recipients,\r\n    [\"Direction\"] = Direction,\r\n    [\"TLS Version\"] = TlsVersion,\r\n    [\"TLS Cipher\"] = TlsCipher,\r\n    [\"Delivery Errors\"] = DeliveryErrors,\r\n    [\"Rejection Type\"] = RejectionType,\r\n    [\"Rejection Code\"] = RejectionCode,\r\n    [\"Rejection Info\"] = RejectionInfo\r\n\r\n\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\" and  [\"TLS Used\"] == \"No\"\r\n| project     \r\n        [\"Aggregate ID\"] ,\r\n    [\"Processing ID\"],\r\n    [\"Delivered\"] ,\r\n    [\"Destination IP\"] ,\r\n    [\"Host Name\"] ,\r\n    [\"Delivery Attempts\"] ,\r\n    [\"TLS Used\"] ,\r\n    [\"Route\"] ,\r\n    [\"Account ID\"] ,\r\n    [\"Event Time\"] ,\r\n    [\"Sender Envelope\"] ,\r\n    [\"Message ID\"] ,\r\n    [\"Subject\"] ,\r\n    [\"Total of Size Attachments\"] ,\r\n    [\"Number of Attachments\"] ,\r\n    [\"Email Size\"] ,\r\n    [\"Type\"] ,\r\n    [\"Sub Type\"] ,\r\n    [\"Recipients\"] ,\r\n    [\"Direction\"] ,\r\n    [\"TLS Version\"] ,\r\n    [\"TLS Cipher\"]  ,\r\n    [\"Delivery Errors\"] ,\r\n    [\"Rejection Type\"] ,\r\n    [\"Rejection Code\"] ,\r\n    [\"Rejection Info\"] \r\n\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Delivered without TLS",
@@ -1215,7 +1207,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered ==  \"true\" \r\n| extend Timestamp = coalesce(toint(Timestamp), 1) \r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Count=count() default=0 on DateTime step 1d by Direction",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered ==  \"true\"  \r\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Direction",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Delivered by Route",
@@ -1235,7 +1227,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\"\r\n| project     \r\n    [\"Aggregate ID\"] = AggregateId,\r\n    [\"Processing ID\"] = ProcessingId,\r\n    [\"Delivered\"] = Delivered,\r\n    [\"Destination IP\"] = DestinationIp,\r\n    [\"Hostname\"] = Hostname,\r\n    [\"Delivery Attempts\"] = DeliveryAttempts,\r\n    [\"TLS Used\"] = TlsUsed,\r\n    [\"Route\"] = Route,\r\n    [\"Account ID\"] = AccountId,\r\n    [\"Timestamp\"] = Timestamp,\r\n    [\"Sender Envelope\"] = SenderEnvelope,\r\n    [\"Message ID\"] = MessageId,\r\n    [\"Subject\"] = Subject,\r\n    [\"Total Size Attachments\"] = TotalSizeAttachments,\r\n    [\"Number Attachments\"] = NumberAttachments,\r\n    [\"Email Size\"] = EmailSize,\r\n    [\"Type\"] = Type,\r\n    [\"Subtype\"] = Subtype,\r\n    [\"Recipients\"] = Recipients,\r\n    [\"Direction\"] = Direction,\r\n    [\"TLS Version\"] = TlsVersion,\r\n    [\"TLS Cipher\"] = TlsCipher,\r\n    [\"Delivery Errors\"] = DeliveryErrors,\r\n    [\"Rejection Type\"] = RejectionType,\r\n    [\"Rejection Code\"] = RejectionCode,\r\n    [\"Rejection Info\"] = RejectionInfo\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\"\r\n| project     \r\n    [\"Aggregate ID\"] ,\r\n    [\"Processing ID\"],\r\n    [\"Delivered\"] ,\r\n    [\"Destination IP\"] ,\r\n    [\"Host Name\"] ,\r\n    [\"Delivery Attempts\"] ,\r\n    [\"TLS Used\"] ,\r\n    [\"Route\"] ,\r\n    [\"Account ID\"] ,\r\n    [\"Event Time\"] ,\r\n    [\"Sender Envelope\"] ,\r\n    [\"Message ID\"] ,\r\n    [\"Subject\"] ,\r\n    [\"Total of Size Attachments\"] ,\r\n    [\"Number of Attachments\"] ,\r\n    [\"Email Size\"] ,\r\n    [\"Type\"] ,\r\n    [\"Sub Type\"] ,\r\n    [\"Recipients\"] ,\r\n    [\"Direction\"] ,\r\n    [\"TLS Version\"] ,\r\n    [\"TLS Cipher\"]  ,\r\n    [\"Delivery Errors\"] ,\r\n    [\"Rejection Type\"] ,\r\n    [\"Rejection Code\"] ,\r\n    [\"Rejection Info\"] \r\n\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Message Delivery Events",
@@ -1259,7 +1251,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\" and Direction == \"Outbound\"\r\n| summarize Count = count() by Direction , Delivered , DestinationIp , TlsUsed \r\n| extend geo_info = geo_info_from_ip_address(DestinationIp)\r\n| extend latitude = geo_info.latitude, longitude = geo_info.longitude, country = geo_info.country , state = geo_info.state , city = geo_info.state\r\n| where isnotempty(latitude) and isnotempty(longitude)\r\n| extend label = strcat(city,\", \",state,\", \",country)\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\" and Direction == \"Outbound\"\r\n| summarize Count = count() by Direction , Delivered , ['Destination IP'] , ['TLS Used'] \r\n| extend geo_info = geo_info_from_ip_address(['Destination IP'])\r\n| extend latitude = geo_info.latitude, longitude = geo_info.longitude, country = geo_info.country , state = geo_info.state , city = geo_info.state\r\n| where isnotempty(latitude) and isnotempty(longitude)\r\n| extend label = strcat(\r\n    iif(strlen(city) > 0, strcat(city, \", \"), \"\"),\r\n    iif(strlen(state) > 0, strcat(state, \", \"), \"\"),\r\n    country\r\n)\r\n| extend label = trim(\", \", label)\r\n| extend label = iif(strlen(label) > 0, label, \"N/A\")\r\n\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Delivered Outbound by Destination Country",
@@ -1387,7 +1379,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type ==\"email_antivirus\"\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Count=count() default=0 on DateTime step 1d by Route",
+              "query": "MimecastCG\r\n| where Type ==\"email_antivirus\"\r\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Route",
               "size": 0,
               "showAnalytics": true,
               "title": "Anti-Virus Traffic",
@@ -1407,7 +1399,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and Action in~ (\"Acc\", \"Rty\") and RejectionType ==\"Virus Signature Detection\"\r\n| summarize count() \r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and Action in~ (\"Acc\", \"Rty\") and ['Rejection Type'] ==\"Virus Signature Detection\"\r\n| summarize count() \r\n",
               "size": 3,
               "showAnalytics": true,
               "title": "Total Viruses Rejected",
@@ -1429,7 +1421,6 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "tiles",
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "count_",
                   "formatter": 12,
@@ -1453,7 +1444,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty( SpamInfo) and SpamInfo != \"[]\"\r\n| summarize count() \r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty( ['Spam Info']) and ['Spam Info'] != \"[]\"\r\n| summarize count() \r\n",
               "size": 3,
               "showAnalytics": true,
               "title": "Total Messages Rejected as Spam",
@@ -1475,7 +1466,6 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "tiles",
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "count_",
                   "formatter": 12,
@@ -1499,7 +1489,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_process\" and HoldReason == \"Spm\"\r\n| summarize count() \r\n\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_process\" and ['Hold Reason'] == \"Spm\"\r\n| summarize count() \r\n\r\n",
               "size": 3,
               "showAnalytics": true,
               "title": "Total Messages Held as Spam",
@@ -1521,7 +1511,6 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "tiles",
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "count_",
                   "formatter": 12,
@@ -1556,7 +1545,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and Action in~ (\"Acc\", \"Rty\") and RejectionType ==\"Virus Signature Detection\"\r\n| project  [\"Aggregate ID\"] = AggregateId, [\"Recipients\"] = Recipients, [\"Action\"] = Action, [\"Timestamp\"] = Timestamp, [\"Sender Envelope\"] = SenderEnvelope, [\"Message ID\"] = MessageId, [\"Subject\"] = Subject, [\"Number of Attachments\"] = NumberAttachments, [\"Type\"] = Type, [\"Subtype\"] = Subtype, [\"Offset\"] = Offset, [\"Partition\"] = Partition, [\"Sender IP\"] = SenderIp, [\"Direction\"] = Direction, [\"Sender Header\"] = SenderHeader, [\"TLS Version\"] = TlsVersion, [\"TLS Cipher\"] = TlsCipher, [\"Spam Info\"] = SpamInfo,[\"Virus Found\"] = VirusFound, [\"Spam Processing Detail\"] = SpamProcessingDetail, [\"Rejection Type\"] = RejectionType, [\"Rejection Code\"] = RejectionCode, [\"Rejection Info\"] = RejectionInfo, [\"Processing ID\"] = ProcessingId, [\"Account ID\"] = AccountId\r\n\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and Action in~ (\"Acc\", \"Rty\") and [\"Rejection Type\"] ==\"Virus Signature Detection\"\r\n| project  [\"Aggregate ID\"], [\"Recipients\"] , [\"Action\"] , [\"Event Time\"] ,[\"Sender Envelope\"] , [\"Message ID\"] , [\"Subject\"] , [\"Number of Attachments\"] , [\"Type\"] = Type, [\"Sub Type\"] ,  [\"Sender IP\"] , [\"Direction\"], [\"Sender Header\"] , [\"TLS Version\"] , [\"TLS Cipher\"] , [\"Spam Info\"] ,[\"Virus Found\"] , [\"Spam Processing Detail\"],[\"Rejection Type\"] ,[\"Rejection Code\"], [\"Rejection Info\"] , [\"Processing ID\"] , [\"Account ID\"] \r\n\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Viruses Rejected",
@@ -1584,7 +1573,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(SpamInfo) and SpamInfo != \"[]\"\r\n| project  [\"Aggregate ID\"] = AggregateId, [\"Processing ID\"] = ProcessingId,[\"Recipients\"] = Recipients, [\"Action\"] = Action, [\"Timestamp\"] = Timestamp, [\"Sender Envelope\"] = SenderEnvelope, [\"Message ID\"] = MessageId, [\"Subject\"] = Subject, [\"Number of Attachments\"] = NumberAttachments, [\"Type\"] = Type, [\"Subtype\"] = Subtype, [\"Offset\"] = Offset, [\"Partition\"] = Partition, [\"Sender IP\"] = SenderIp, [\"Direction\"] = Direction, [\"Sender Header\"] = SenderHeader, [\"TLS Version\"] = TlsVersion, [\"TLS Cipher\"] = TlsCipher, [\"Spam Info\"] = SpamInfo,[\"Virus Found\"] = VirusFound, [\"Spam Processing Detail\"] = SpamProcessingDetail, [\"Rejection Type\"] = RejectionType, [\"Rejection Code\"] = RejectionCode, [\"Rejection Info\"] = RejectionInfo,  [\"Account ID\"] = AccountId",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(['Spam Info']) and ['Spam Info'] != \"[]\"\r\n| project  [\"Aggregate ID\"], [\"Recipients\"] , [\"Action\"] , [\"Event Time\"] ,[\"Sender Envelope\"] , [\"Message ID\"] , [\"Subject\"] , [\"Number of Attachments\"] , [\"Type\"] = Type, [\"Sub Type\"] ,  [\"Sender IP\"] , [\"Direction\"], [\"Sender Header\"] , [\"TLS Version\"] , [\"TLS Cipher\"] , [\"Spam Info\"] ,[\"Virus Found\"] , [\"Spam Processing Detail\"],[\"Rejection Type\"] ,[\"Rejection Code\"], [\"Rejection Info\"] , [\"Processing ID\"] , [\"Account ID\"] \r\n\r\n\r\n\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Rejected as Spam",
@@ -1599,7 +1588,6 @@
                 "filter": true
               },
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "count_",
                   "formatter": 12,
@@ -1625,7 +1613,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_process\" and HoldReason == \"Spm\"\r\n| project   [\"Aggregate ID\"] = AggregateId, [\"Processing ID\"] = ProcessingId,  [\"Account ID\"] = AccountId, [\"Action\"] = Action, [\"Timestamp\"] = Timestamp, [\"Sender Envelope\"] = SenderEnvelope, [\"Message ID\"] = MessageId, [\"Subject\"] = Subject, [\"Total Size of Attachments\"] = TotalSizeAttachments, [\"Number of Attachments\"] = NumberAttachments, [\"Email Size\"] = EmailSize, [\"Type\"] = Type, [\"Subtype\"] = Subtype, [\"Offset\"] = Offset, [\"Partition\"] = Partition,[\"Hold Reason\"] = HoldReason\r\n\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_process\" and ['Hold Reason'] == \"Spm\"\r\n| project  [\"Aggregate ID\"], [\"Recipients\"] , [\"Action\"] , [\"Event Time\"],  ['Hold Reason'] ,[\"Sender Envelope\"] , [\"Message ID\"] , [\"Subject\"] , [\"Number of Attachments\"] , [\"Type\"] = Type, [\"Sub Type\"] ,  [\"Sender IP\"] , [\"Direction\"], [\"Sender Header\"] , [\"TLS Version\"] , [\"TLS Cipher\"] , [\"Spam Info\"] ,[\"Virus Found\"] , [\"Spam Processing Detail\"],[\"Rejection Type\"] ,[\"Rejection Code\"], [\"Rejection Info\"] , [\"Processing ID\"] , [\"Account ID\"] \r\n\r\n\r\n\r\n\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Held as Spam",
@@ -1653,7 +1641,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(VirusFound)\r\n| summarize Count = count() by SenderEnvelope , Recipients , SenderIp,VirusFound , Timestamp\r\n| sort by Count desc\r\n| extend Sender = SenderEnvelope , Recipient =  Recipients , [\"Source IP\"] = SenderIp, [\"Virus Name\"] = VirusFound, Timestamp = coalesce(toint(Timestamp), 1)\r\n| project Sender, Recipient, [\"Source IP\"], [\"Virus Name\"], Count ,Timestamp = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| extend Count = iff(isnull(Count), 0, Count)\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(['Virus Found'])\r\n| summarize Count = count() by ['Sender Envelope'] , Recipients , ['Sender IP'],['Virus Found'] , ['Event Time']\r\n| sort by Count desc\r\n| extend Sender = ['Sender Envelope'] , Recipient =  Recipients , [\"Source IP\"] = ['Sender IP'], [\"Virus Name\"] = ['Virus Found']\r\n| project Sender, Recipient, [\"Source IP\"], [\"Virus Name\"], Count , ['Event Time']\r\n| extend Count = iff(isnull(Count), 0, Count)\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Rejected Due to Virus",
@@ -1668,7 +1656,6 @@
                 "filter": true
               },
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "count_",
                   "formatter": 12,
@@ -1692,7 +1679,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(SpamInfo) and SpamInfo != \"[]\"\r\n| summarize Count = count() by SenderEnvelope , Recipients , SenderIp,SpamInfo , Timestamp\r\n| sort by Count desc\r\n| extend Sender = SenderEnvelope , Recipient =  Recipients , [\"Source IP\"] = SenderIp, [\"Spam Information\"]  = SpamInfo, Timestamp = coalesce(toint(Timestamp), 1)\r\n| project Sender, Recipient, [\"Source IP\"], [\"Spam Information\"], Count , Timestamp =  todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| extend Count = iff(isnull(Count), 0, Count)\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(['Spam Info'] ) and ['Spam Info'] != \"[]\"\r\n| summarize Count = count() by ['Sender Envelope'] , Recipients , ['Sender IP'],['Spam Info'] , ['Event Time']\r\n| sort by Count desc\r\n| extend Sender = ['Sender Envelope'] , Recipient =  Recipients , [\"Source IP\"] = ['Sender IP'], [\"Spam Information\"]  = ['Spam Info'] \r\n| project Sender, Recipient, [\"Source IP\"], [\"Spam Information\"], Count ,['Event Time']\r\n| extend Count = iff(isnull(Count), 0, Count)\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Messages Rejected as Spam",
@@ -1707,7 +1694,6 @@
                 "filter": true
               },
               "tileSettings": {
-                "titleContent": {},
                 "leftContent": {
                   "columnMatch": "count_",
                   "formatter": 12,
@@ -1821,7 +1807,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\" and isnotnull(TlsUsed)\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Count=count() default=0 on DateTime step 1d by TlsUsed",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered == \"true\" and isnotnull(['TLS Used'])\r\n| make-series Count=count() default=0 on ['Event Time'] step 1d by ['TLS Used']",
               "size": 0,
               "showAnalytics": true,
               "title": "TLS Delivery",
@@ -1841,7 +1827,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered== \"true\" and isnotempty(TlsVersion)\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| summarize Count = count(Recipients) by bin(DateTime , 1d), TlsVersion",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and Delivered== \"true\" and isnotempty(['TLS Version'])\r\n| summarize Count = count(Recipients) by bin(['Event Time'] , 1d), ['TLS Version']",
               "size": 0,
               "showAnalytics": true,
               "title": "TLS Versions (Delivery)",
@@ -1851,7 +1837,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "categoricalbar",
               "chartSettings": {
-                "group": "TlsVersion",
+                "group": "TLS Version",
                 "createOtherGroup": null
               }
             },
@@ -1867,7 +1853,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(TlsVersion)\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| summarize Count = count(Recipients) by bin(DateTime , 1d), TlsVersion",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(['TLS Version'])\r\n| summarize Count = count(Recipients) by bin(['Event Time'] , 1d), ['TLS Version']",
               "size": 0,
               "showAnalytics": true,
               "title": "TLS Versions (Receipt)",
@@ -1877,7 +1863,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "categoricalbar",
               "chartSettings": {
-                "group": "TlsVersion",
+                "group": "TLS Version",
                 "createOtherGroup": null
               }
             },
@@ -1893,7 +1879,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and isnotempty(TlsCipher)\r\n| summarize count() by Cipher = TlsCipher \r\n| sort by count_ desc",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and isnotempty(['TLS Cipher'])\r\n| summarize count() by Cipher = ['TLS Cipher'] \r\n| sort by count_ desc",
               "size": 0,
               "showAnalytics": true,
               "title": "Delivery Ciphers",
@@ -1907,7 +1893,7 @@
                 "filter": true
               },
               "chartSettings": {
-                "group": "*",
+                "group": "Cipher",
                 "createOtherGroup": null
               }
             },
@@ -1923,7 +1909,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(TlsCipher)\r\n| summarize count() by Cipher = TlsCipher \r\n| sort by count_ desc\r\n",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and isnotempty(['TLS Cipher'])\r\n| summarize count() by Cipher = ['TLS Cipher'] \r\n| sort by count_ desc\r\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Receipt Ciphers",
@@ -1937,7 +1923,7 @@
                 "filter": true
               },
               "chartSettings": {
-                "group": "*",
+                "group": "Cipher",
                 "createOtherGroup": null
               }
             },
@@ -1953,7 +1939,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and TlsUsed == \"No\" and Delivered == \"true\"\r\n| extend temp = split(Recipients, \"@\")\r\n| extend [\"Recipient Domain\"] = tostring(temp[1])\r\n| summarize Count = count() by [\"Recipient Domain\"] \r\n| top 10 by Count",
+              "query": "MimecastCG\r\n| where Type == \"email_delivery\" and ['TLS Used'] == \"No\" and Delivered == \"true\"\r\n| extend temp = split(Recipients, \"@\")\r\n| extend [\"Recipient Domain\"] = tostring(temp[1])\r\n| summarize Count = count() by [\"Recipient Domain\"] \r\n| top 10 by Count",
               "size": 0,
               "showAnalytics": true,
               "title": "Top 10 Recipient Domains not Using TLS",
@@ -1979,7 +1965,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and  Action in~ (\"Acc\", \"Rty\")  and isempty(TlsVersion)\r\n| extend temp = split(SenderEnvelope, \"@\")\r\n| extend [\"Sending Domain\"] = tostring(temp[1])\r\n| summarize Count = count() by [\"Sending Domain\"] \r\n| top 10 by Count",
+              "query": "MimecastCG\r\n| where Type == \"email_receipt\" and  Action in~ (\"Acc\", \"Rty\")  and isempty(['TLS Version'])\r\n| extend temp = split(['Sender Envelope'], \"@\")\r\n| extend [\"Sending Domain\"] = tostring(temp[1])\r\n| summarize Count = count() by [\"Sending Domain\"] \r\n| top 10 by Count",
               "size": 0,
               "showAnalytics": true,
               "title": "Top 10 Sending Domains not Using TLS",
@@ -1989,7 +1975,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "categoricalbar",
               "chartSettings": {
-                "group": "*",
+                "group": "Sending Domain",
                 "createOtherGroup": null
               }
             },
@@ -2097,7 +2083,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastDLP\n| extend EventTime = coalesce(todatetime(EventTime), now() - 15d)\n| summarize count() by Action, bin(EventTime, 1d)\n",
+              "query": "MimecastDLP\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Action\n",
               "size": 0,
               "showAnalytics": true,
               "title": "Data Leak Prevention Events",
@@ -2105,7 +2091,7 @@
               "showRefreshButton": true,
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
-              "visualization": "categoricalbar",
+              "visualization": "timechart",
               "chartSettings": {
                 "group": "*",
                 "createOtherGroup": 25,
@@ -2171,7 +2157,6 @@
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
-              "sortBy": [],
               "chartSettings": {
                 "group": "Route",
                 "createOtherGroup": 10,
@@ -2190,7 +2175,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastDLP\n| extend EventTime = coalesce(todatetime(EventTime), now() - 15d)\n| summarize count() by Action, bin(EventTime, 1h)\n",
+              "query": "MimecastDLP\n| summarize count() by Action\n",
               "size": 3,
               "showAnalytics": true,
               "title": "DLP Events by Actions Triggered",
@@ -2334,7 +2319,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_iep\"\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Count=count() default=0 on DateTime step 1d by Route",
+              "query": "MimecastCG\r\n| where Type == \"email_iep\"\r\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Route",
               "size": 0,
               "showAnalytics": true,
               "title": "Internal Email Protection by Route",
@@ -2354,7 +2339,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_iep\"\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend Timestamp = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| project\r\n    ['Aggregate ID'] = AggregateId,\r\n    ['Processing ID'] = ProcessingId,\r\n    ['Account ID'] = AccountId,\r\n    Type,\r\n    Timestamp,\r\n    ['Sender Envelope'] = SenderEnvelope,\r\n    Subject,\r\n    Recipients,\r\n    ['Url Category'] = UrlCategory,\r\n    ['Scan Results'] = ScanResults,\r\n    Route,\r\n    ['Message ID'] = MessageId,\r\n    ['Monitored Domain Source'] = MonitoredDomainSource,\r\n    ['Similar Domain'] =SimilarDomain,\r\n    ['Sub Type'] = Subtype",
+              "query": "MimecastCG\r\n| where Type == \"email_iep\"\r\n| project\r\n    ['Aggregate ID'],\r\n    ['Processing ID'] ,\r\n    ['Account ID'] ,\r\n    Type,\r\n    ['Event Time'],\r\n    ['Sender Envelope'] ,\r\n    Subject,\r\n    Recipients,\r\n    ['Url Category'],\r\n    ['Scan Results'] ,\r\n    Route,\r\n    ['Message ID'] ,\r\n    ['Monitored Domain Source'] ,\r\n    ['Similar Domain'] ,\r\n    ['Sub Type'] ",
               "size": 0,
               "showAnalytics": true,
               "title": "Internal Event Protection Events",
@@ -2468,7 +2453,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_journal\"\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Count=count() default=0 on DateTime step 1d by Direction",
+              "query": "MimecastCG\r\n| where Type == \"email_journal\"\r\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Direction",
               "size": 0,
               "showAnalytics": true,
               "title": "Journal Messages by Direction",
@@ -2488,7 +2473,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_journal\"\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend Timestamp = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| project\r\n    ['Aggregate ID'] = AggregateId,\r\n    ['Processing ID'] = ProcessingId,\r\n    ['Account ID'] = AccountId,\r\n    Type,\r\n    Timestamp,\r\n    ['Sender Envelope'] = SenderEnvelope,\r\n    Recipients,\r\n    Direction,\r\n    ['Sub Type'] = Subtype",
+              "query": "MimecastCG\r\n| where Type == \"email_journal\"\r\n| project\r\n    ['Aggregate ID'] ,\r\n    ['Processing ID'],\r\n    ['Account ID'],\r\n    Type,\r\n    ['Event Time'],\r\n    ['Sender Envelope'] ,\r\n    Recipients,\r\n    Direction,\r\n    ['Sub Type'] ",
               "size": 0,
               "showAnalytics": true,
               "title": "Journal Message Events",
@@ -2602,7 +2587,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type ==\"email_spam\" and isnotempty(Route)\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend DateTime = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| make-series Count=count() default=0 on DateTime step 1d by Route",
+              "query": "MimecastCG\r\n| where Type ==\"email_spam\" and isnotempty(Route)\r\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Route",
               "size": 0,
               "showAnalytics": true,
               "title": "Spam Messages by Route",
@@ -2622,7 +2607,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastCG\r\n| where Type == \"email_spam\"\r\n| extend Timestamp = coalesce(toint(Timestamp), 1)\r\n| extend Timestamp = todatetime(unixtime_milliseconds_todatetime(Timestamp))\r\n| project\r\n    ['Aggregate ID'] = AggregateId,\r\n    ['Processing ID'] = ProcessingId,\r\n    ['Account ID'] = AccountId,\r\n    Type,\r\n    Timestamp,\r\n    ['Sender Envelope'] = SenderEnvelope,\r\n    Subject,\r\n    Recipients,\r\n    ['Sender IP'] = SenderIp,\r\n    ['Sender Domain'] = SenderDomain,\r\n    ['Sender Header'] = SenderHeader,\r\n    Route,\r\n    ['Sub Type'] = Subtype",
+              "query": "MimecastCG\r\n| where Type == \"email_spam\"\r\n| project\r\n    ['Aggregate ID'] ,\r\n    ['Processing ID'],\r\n    ['Account ID'] ,\r\n    Type,\r\n    ['Event Time'],\r\n    ['Sender Envelope'] ,\r\n    Subject,\r\n    Recipients,\r\n    ['Sender IP'] ,\r\n    ['Sender Domain'] ,\r\n    ['Sender Header'],\r\n    Route,\r\n    ['Sub Type'] ",
               "size": 0,
               "showAnalytics": true,
               "title": "Spam Message Events",
@@ -2646,7 +2631,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "//Acc and Rty are considered as delivered\r\n\r\nMimecastCG\r\n| where Type == \"email_spam\" and isnotempty(SenderIp)\r\n| extend senderGeoDetails = geo_info_from_ip_address(SenderIp)\r\n| extend latitude = senderGeoDetails.latitude, longitude = senderGeoDetails.longitude, country = senderGeoDetails.country, state = senderGeoDetails.state, city = senderGeoDetails.city\r\n| where isnotempty(latitude) and isnotempty(longitude)\r\n| extend label = strcat(city,\", \",state,\", \",country)\r\n| summarize  count() by tostring(latitude), tostring(longitude), label",
+              "query": "MimecastCG\r\n| where Type == \"email_spam\" and isnotempty(['Sender IP'])\r\n| extend senderGeoDetails = geo_info_from_ip_address(['Sender IP'])\r\n| extend latitude = senderGeoDetails.latitude, longitude = senderGeoDetails.longitude, country = senderGeoDetails.country, state = senderGeoDetails.state, city = senderGeoDetails.city\r\n| where isnotempty(latitude) and isnotempty(longitude)\r\n| extend label = strcat(\r\n    iif(strlen(city) > 0, strcat(city, \", \"), \"\"),\r\n    iif(strlen(state) > 0, strcat(state, \", \"), \"\"),\r\n    country\r\n)\r\n| extend label = trim(\", \", label)\r\n| extend label = iif(strlen(label) > 0, label, \"N/A\")\r\n| summarize  count() by tostring(latitude), tostring(longitude), label",
               "size": 0,
               "showAnalytics": true,
               "title": "Spam Messages by Source Country",
@@ -2698,6 +2683,6 @@
       "name": "text - 7"
     }
   ],
-  "fromTemplateId": "sentinel-UserWorkbook",
+  "fromTemplateId": "Mimecast-sentinel-SEG",
   "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
 }

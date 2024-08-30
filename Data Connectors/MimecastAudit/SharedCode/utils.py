@@ -3,6 +3,7 @@
 import inspect
 import requests
 import json
+from json.decoder import JSONDecodeError
 from SharedCode.state_manager import StateManager
 from SharedCode.mimecast_exception import MimecastException
 from SharedCode.logger import applogger
@@ -209,7 +210,7 @@ class Utils:
         __method_name = inspect.currentframe().f_code.co_name
         if isinstance(response, dict):
             return False
-        if response.status_code in consts.RETRYABLE_STATUS_CODE:
+        if response.status_code in consts.RETRY_STATUS_CODE:
             applogger.info(
                 "{}(method={}) : {} : Retrying due to status code : {}".format(
                     consts.LOGS_STARTS_WITH,
@@ -223,24 +224,25 @@ class Utils:
 
     @retry(
         stop=stop_after_attempt(consts.MAX_RETRIES),
-        wait=wait_exponential(multiplier=2, min=1, max=30),
+        wait=wait_exponential(
+            multiplier=consts.BACKOFF_MULTIPLIER,
+            min=consts.MIN_SLEEP_TIME,
+            max=consts.MAX_SLEEP_TIME,
+        ),
         retry=retry_any(
             retry_if_result(retry_on_status_code),
             retry_if_exception_type(ConnectionError),
         ),
         before_sleep=lambda retry_state: applogger.error(
-            "{}(method = {}) : {} : Retry number: {} due to exception : {} ".format(
+            "{}(method = {}) : Retring after {} secends, attempt number: {} ".format(
                 consts.LOGS_STARTS_WITH,
                 " Retry Decorator",
-                consts.AUDIT_FUNCTION_NAME,
+                retry_state.upcoming_sleep,
                 retry_state.attempt_number,
-                retry_state.outcome.exception(),
             )
         ),
     )
-    def make_rest_call(
-        self, method, url, params=None, data=None, json=None, check_retry=True
-    ):
+    def make_rest_call(self, method, url, params=None, data=None, json=None, check_retry=True):
         """Make a rest call.
 
         Args:
@@ -292,9 +294,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Bad Request = {}, Status code : {}".format(
-                            response.text, response.status_code
-                        ),
+                        "Bad Request = {}, Status code : {}".format(response.text, response.status_code),
                     )
                 )
                 self.handle_failed_response_for_failure(response)
@@ -325,9 +325,7 @@ class Utils:
                     )
                     check_retry = False
                     self.authenticate_mimecast_api(check_retry)
-                    return self.make_rest_call(
-                        method, url=url, json=json, check_retry=check_retry
-                    )
+                    return self.make_rest_call(method, url=url, json=json, check_retry=check_retry)
                 else:
                     applogger.error(
                         self.log_format.format(
@@ -335,9 +333,7 @@ class Utils:
                             __method_name,
                             self.azure_function_name,
                             "Max retry reached for generating access token,"
-                            "Error message = {}, Error code = {}".format(
-                                error_message, error_code
-                            ),
+                            "Error message = {}, Error code = {}".format(error_message, error_code),
                         )
                     )
                     raise MimecastException()
@@ -357,9 +353,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Not Found, URL : {}, Status code : {}".format(
-                            url, response.status_code
-                        ),
+                        "Not Found, URL : {}, Status code : {}".format(url, response.status_code),
                     )
                 )
                 raise MimecastException()
@@ -379,9 +373,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Too Many Requests, Status code : {} ".format(
-                            response.status_code
-                        ),
+                        "Too Many Requests, Status code : {} ".format(response.status_code),
                     )
                 )
                 return response
@@ -391,9 +383,7 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Internal Server Error, Status code : {}".format(
-                            response.status_code
-                        ),
+                        "Internal Server Error, Status code : {}".format(response.status_code),
                     )
                 )
                 return self.handle_failed_response_for_failure(response)
@@ -402,9 +392,7 @@ class Utils:
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    "Unexpected Error = {}, Status code : {}".format(
-                        response.text, response.status_code
-                    ),
+                    "Unexpected Error = {}, Status code : {}".format(response.text, response.status_code),
                 )
             )
             raise MimecastException()
@@ -421,7 +409,7 @@ class Utils:
                 )
             )
             raise MimecastException()
-        except json.decoder.JSONDecodeError as error:
+        except JSONDecodeError as error:
             applogger.error(
                 self.log_format.format(
                     consts.LOGS_STARTS_WITH,
@@ -440,7 +428,7 @@ class Utils:
                     consts.CONNECTION_ERROR_MSG.format(error),
                 )
             )
-            raise ConnectionError()
+            raise requests.ConnectionError()
         except requests.RequestException as error:
             applogger.error(
                 self.log_format.format(
@@ -576,9 +564,7 @@ class Utils:
             )
             self.headers = {}
             url = "{}{}".format(consts.BASE_URL, consts.ENDPOINTS["OAUTH2"])
-            response = self.make_rest_call(
-                method="POST", url=url, data=body, check_retry=check_retry
-            )
+            response = self.make_rest_call(method="POST", url=url, data=body, check_retry=check_retry)
 
             if "access_token" in response:
                 access_token = response.get("access_token")
@@ -602,9 +588,7 @@ class Utils:
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    "Error occurred while fetching the access token from the response = {}".format(
-                        response
-                    ),
+                    "Error occurred while fetching the access token from the response = {}".format(response),
                 )
             )
             raise MimecastException()
@@ -616,9 +600,7 @@ class Utils:
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    consts.MAX_RETRY_ERROR_MSG.format(
-                        error, error.last_attempt.exception()
-                    ),
+                    consts.MAX_RETRY_ERROR_MSG.format(error, error.last_attempt.exception()),
                 )
             )
             raise MimecastException()

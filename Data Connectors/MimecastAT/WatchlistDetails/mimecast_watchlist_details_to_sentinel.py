@@ -7,6 +7,7 @@ from ..SharedCode.logger import applogger
 from ..SharedCode.state_manager import StateManager
 from ..SharedCode.utils import Utils
 import time
+import datetime
 from tenacity import RetryError
 
 
@@ -43,16 +44,16 @@ class MimecastAwarenessWatchlist(Utils):
         )
         self.function_start_time = start_time
 
-    def get_request_body(self):
-        """Get request body with page token if available in checkpoint.
+    def get_request_body_and_checkpoint(self):
+        """Get the request body and checkpoint data for pagination.
 
         Returns:
-            dict: request body
+            tuple: A dictionary containing the request body and the checkpoint data.
         """
         __method_name = inspect.currentframe().f_code.co_name
         try:
             request_body = {"meta": {"pagination": {"pageSize": consts.MAX_PAGE_SIZE}}}
-            checkpoint = self.get_checkpoint_data(self.state_manager_obj, False)
+            checkpoint = self.get_checkpoint_data(self.state_manager_obj)
             if checkpoint:
                 applogger.info(
                     self.log_format.format(
@@ -62,7 +63,8 @@ class MimecastAwarenessWatchlist(Utils):
                         "Page checkpoint found.",
                     )
                 )
-                request_body["meta"]["pagination"]["pageToken"] = checkpoint
+                pageToken = checkpoint.get("pageToken")
+                request_body["meta"]["pagination"]["pageToken"] = pageToken
                 applogger.info(
                     self.log_format.format(
                         consts.LOGS_STARTS_WITH,
@@ -80,7 +82,7 @@ class MimecastAwarenessWatchlist(Utils):
                         "Page checkpoint not found.",
                     )
                 )
-            return request_body
+            return request_body, checkpoint
         except MimecastException:
             raise MimecastException()
         except Exception as err:
@@ -98,7 +100,7 @@ class MimecastAwarenessWatchlist(Utils):
         """Get Mimecast awareness training watchlist details data and ingest to sentinel."""
         __method_name = inspect.currentframe().f_code.co_name
         try:
-            request_body = self.get_request_body()
+            request_body, checkpoint_data = self.get_request_body_and_checkpoint()
             next_page = True
             while next_page:
                 if (
@@ -111,14 +113,20 @@ class MimecastAwarenessWatchlist(Utils):
                 )
                 watchlist_details_data = watchlist_details_response["data"]
                 if len(watchlist_details_data) > 0:
-                    self.filter_unique_data_and_post(
-                        watchlist_details_data,
-                        self.hash_file_state_manager_obj,
-                        consts.TABLE_NAME["WATCHLIST_DETAILS"],
-                    )
                     next_page_token = watchlist_details_response["meta"][
                         "pagination"
                     ].get("next", "")
+                    next_page_token_flag = False
+                    if next_page_token:
+                        next_page_token_flag = True
+                    checkpoint_token_updated = self.filter_unique_data_and_post(
+                        watchlist_details_data,
+                        self.hash_file_state_manager_obj,
+                        consts.TABLE_NAME["WATCHLIST_DETAILS"],
+                        checkpoint_data,
+                        self.state_manager_obj,
+                        next_page_token_flag,
+                    )
                     if next_page_token:
                         request_body["meta"]["pagination"][
                             "pageToken"
@@ -131,31 +139,43 @@ class MimecastAwarenessWatchlist(Utils):
                                 "Posting page checkpoint : {}.".format(next_page_token),
                             )
                         )
+                        checkpoint_data = {
+                            "pageToken": next_page_token,
+                            "date": datetime.datetime.utcnow().isoformat(),
+                        }
                         self.post_checkpoint_data(
-                            self.state_manager_obj, next_page_token, False
+                            self.state_manager_obj, checkpoint_data
                         )
                     else:
-                        next_page = False
-                        hash_data_to_save = self.convert_to_hash(watchlist_details_data)
-                        applogger.info(
-                            self.log_format.format(
-                                consts.LOGS_STARTS_WITH,
-                                __method_name,
-                                self.azure_function_name,
-                                "Posting hash checkpoint.",
+                        if checkpoint_token_updated:
+                            del request_body["meta"]["pagination"]["pageToken"]
+                            checkpoint_data = {}
+                        else:
+                            next_page = False
+                            hash_data_to_save = self.convert_to_hash(
+                                watchlist_details_data
                             )
-                        )
-                        self.post_checkpoint_data(
-                            self.hash_file_state_manager_obj, hash_data_to_save, True
-                        )
-                        applogger.info(
-                            self.log_format.format(
-                                consts.LOGS_STARTS_WITH,
-                                __method_name,
-                                self.azure_function_name,
-                                "End of data.",
+                            applogger.info(
+                                self.log_format.format(
+                                    consts.LOGS_STARTS_WITH,
+                                    __method_name,
+                                    self.azure_function_name,
+                                    "Posting hash checkpoint.",
+                                )
                             )
-                        )
+                            self.post_checkpoint_data(
+                                self.hash_file_state_manager_obj,
+                                hash_data_to_save,
+                                True,
+                            )
+                            applogger.info(
+                                self.log_format.format(
+                                    consts.LOGS_STARTS_WITH,
+                                    __method_name,
+                                    self.azure_function_name,
+                                    "End of data.",
+                                )
+                            )
                 else:
                     next_page = False
                     applogger.info(

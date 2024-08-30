@@ -3,6 +3,7 @@
 import inspect
 import requests
 import json
+from json.decoder import JSONDecodeError
 import datetime
 from .state_manager import StateManager
 from .mimecast_exception import MimecastException
@@ -208,7 +209,7 @@ class Utils:
         __method_name = inspect.currentframe().f_code.co_name
         if isinstance(response, dict):
             return False
-        if response.status_code in consts.RETRYABLE_STATUS_CODE:
+        if response.status_code in consts.RETRY_STATUS_CODE:
             applogger.info(
                 "{}(method={}) : Retrying due to status code : {}".format(
                     consts.LOGS_STARTS_WITH, __method_name, response.status_code
@@ -219,17 +220,19 @@ class Utils:
 
     @retry(
         stop=stop_after_attempt(consts.MAX_RETRIES),
-        wait=wait_exponential(multiplier=2, min=1, max=30),
+        wait=wait_exponential(
+            multiplier=consts.BACKOFF_MULTIPLIER, min=consts.MIN_SLEEP_TIME, max=consts.MAX_SLEEP_TIME
+        ),
         retry=retry_any(
             retry_if_result(retry_on_status_code),
             retry_if_exception_type(ConnectionError),
         ),
         before_sleep=lambda retry_state: applogger.error(
-            "{}(method = {}) : Retry number: {} due to exception : {} ".format(
+            "{}(method = {}) : Retring after {} secends, attempt number: {} ".format(
                 consts.LOGS_STARTS_WITH,
                 " Retry Decorator",
-                retry_state.attempt_number,
-                retry_state.outcome.exception(),
+                retry_state.upcoming_sleep,
+                retry_state.attempt_number
             )
         ),
     )
@@ -421,7 +424,7 @@ class Utils:
                 )
             )
             raise MimecastException()
-        except json.decoder.JSONDecodeError as error:
+        except JSONDecodeError as error:
             applogger.error(
                 self.log_format.format(
                     consts.LOGS_STARTS_WITH,

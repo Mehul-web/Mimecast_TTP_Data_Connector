@@ -67,7 +67,7 @@ def post_data(body, log_type):
         )
     except Exception as err:
         applogger.error(
-            "{}(method={}) : Error-{}".format(
+            "{}(method={}) : Error in build signature-{}".format(
                 consts.LOGS_STARTS_WITH,
                 __method_name,
                 err,

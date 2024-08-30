@@ -78,7 +78,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "MimecastAudit\n| extend EventTime = coalesce(todatetime(EventTime), now() - 15d)\n| summarize count() by Category, bin(EventTime, 1d)",
+        "query": "MimecastAudit\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Category\n",
         "size": 0,
         "showAnalytics": true,
         "title": "Audit & Authentication Events by Category",
@@ -204,7 +204,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastAudit\n| summarize count() by AuditType ",
+              "query": "MimecastAudit\n| summarize count() by ['Audit Type'] ",
               "size": 3,
               "showAnalytics": true,
               "title": "Audit Events by Type",
@@ -215,7 +215,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
               "chartSettings": {
-                "group": "AuditType",
+                "group": "Audit Type",
                 "createOtherGroup": 10,
                 "showMetrics": false,
                 "showLegend": true
@@ -232,7 +232,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastAudit\n| where Category == \"account_logs\"\n| summarize count() by AuditType",
+              "query": "MimecastAudit\n| where Category == \"account_logs\"\n| summarize count() by ['Audit Type']",
               "size": 3,
               "showAnalytics": true,
               "title": "Account Events",
@@ -243,7 +243,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
               "chartSettings": {
-                "group": "AuditType",
+                "group": "Audit Type",
                 "createOtherGroup": 10,
                 "showMetrics": false,
                 "showLegend": true
@@ -260,7 +260,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastAudit\n| where Category == \"authentication_logs\"\n| summarize count() by AuditType",
+              "query": "MimecastAudit\n| where Category == \"authentication_logs\"\n| summarize count() by ['Audit Type']\n",
               "size": 3,
               "showAnalytics": true,
               "title": "Authentication Events",
@@ -271,7 +271,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
               "chartSettings": {
-                "group": "AuditType",
+                "group": "Audit Type",
                 "createOtherGroup": 10,
                 "showMetrics": false,
                 "showLegend": true
@@ -288,7 +288,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastAudit\n| where Category == \"mimecast_access_logs\"\n| summarize count() by AuditType",
+              "query": "MimecastAudit\n| where Category == \"mimecast_access_logs\"\n| summarize count() by ['Audit Type']",
               "size": 3,
               "showAnalytics": true,
               "title": "Mimecast Support Access Events",
@@ -299,7 +299,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
               "chartSettings": {
-                "group": "AuditType",
+                "group": "Audit Type",
                 "createOtherGroup": 10,
                 "showMetrics": false,
                 "showLegend": true
@@ -316,7 +316,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastAudit\n| where Category == \"archive_service_logs\"\n| summarize count() by AuditType",
+              "query": "MimecastAudit\n| where Category == \"archive_service_logs\"\n| summarize count() by ['Audit Type']",
               "size": 3,
               "showAnalytics": true,
               "title": "Archive Service Events",
@@ -327,7 +327,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
               "chartSettings": {
-                "group": "AuditType",
+                "group": "Audit Type",
                 "createOtherGroup": 10,
                 "showMetrics": false,
                 "showLegend": true
@@ -344,7 +344,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastAudit\n| where Category == \"user_account_and_role_logs\"\n| summarize count() by AuditType",
+              "query": "MimecastAudit\n| where Category == \"user_account_and_role_logs\"\n| summarize count() by ['Audit Type']",
               "size": 3,
               "showAnalytics": true,
               "title": "User Account and Role Events",
@@ -355,7 +355,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
               "chartSettings": {
-                "group": "AuditType",
+                "group": "Audit Type",
                 "createOtherGroup": 10,
                 "showMetrics": false,
                 "showLegend": true
@@ -372,7 +372,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastAudit\n| where Category == \"policy_logs\"\n| summarize count() by AuditType",
+              "query": "MimecastAudit\n| where Category == \"policy_logs\"\n| summarize count() by ['Audit Type']",
               "size": 3,
               "showAnalytics": true,
               "title": "Policy Events",
@@ -383,7 +383,7 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "visualization": "piechart",
               "chartSettings": {
-                "group": "AuditType",
+                "group": "Audit Type",
                 "createOtherGroup": 10,
                 "showMetrics": false,
                 "showLegend": true
@@ -400,7 +400,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastAudit\n| where AuditType  == \"User Logged On\" and Application !=\"\"\n| summarize count() by Application",
+              "query": "MimecastAudit\n| where ['Audit Type']  == \"User Logged On\" and Application !=\"\"\n| summarize count() by Application",
               "size": 3,
               "showAnalytics": true,
               "title": "Successful Logins by Application",
@@ -434,7 +434,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastAudit\n| where SourceIp !=\"unknown\" and AuditType == \"User Logged On\"\n| extend [\"Source IP\"] = SourceIp\n| summarize count() by User, Application, [\"Source IP\"], [\"Event Time\"] =EventTime",
+                    "query": "MimecastAudit\n| where ['Source IP'] !=\"unknown\" and ['Audit Type'] == \"User Logged On\"\n| summarize count() by User, Application, ['Source IP'] , [\"Event Time\"] ",
                     "size": 0,
                     "showAnalytics": true,
                     "title": "Successful Logins by User, App and Source IP",
@@ -525,7 +525,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastAudit\n| where SourceIp !=\"unknown\" and AuditType == \"Logon Authentication Failed\"\n| extend [\"Source IP\"] = SourceIp\n| summarize [\"Failed Login\"] = count() by User, Application, [\"Source IP\"], [\"Event Time\"] =EventTime",
+                    "query": "MimecastAudit\n| where ['Source IP'] !=\"unknown\" and ['Audit Type'] == \"Logon Authentication Failed\"\n| summarize [\"Failed Login\"] = count() by User, Application, ['Source IP'], ['Event Time']",
                     "size": 0,
                     "showAnalytics": true,
                     "title": "Failed Logins by User, App and Source IP",

@@ -290,13 +290,13 @@ class MimecastCGToSentinel(Utils):
             )
             raise MimecastException()
 
-    def handle_corrupt_data(self, index, obj, corrupt_data=[]):
+    def handle_corrupt_data(self, index, obj, corrupt_data):
         """Handle corrupt data by appending it to the corrupt_data list.
 
         Args:
             index (int): The index of the task.
             obj: The object to be handled.
-            corrupt_data (list): A list to store corrupt data. Defaults to an empty list.
+            corrupt_data (list): A list to store corrupt data.
         """
         __method_name = inspect.currentframe().f_code.co_name
         try:
@@ -346,7 +346,7 @@ class MimecastCGToSentinel(Utils):
                     if obj:
                         json_objects.append(json.loads(obj))
                 except json.JSONDecodeError:
-                    self.handle_corrupt_data(index, obj)
+                    self.handle_corrupt_data(index, obj, corrupt_data)
                     continue
             if corrupt_data:
                 curent_corrupt_data_obj = StateManager(

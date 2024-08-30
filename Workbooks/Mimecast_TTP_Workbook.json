@@ -85,7 +85,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let TableMapping = dynamic(\n  {\n    \"Ttp_Url_CL\" : \"URL Protect\",\n    \"Ttp_Attachment_CL\" : \"Attachment Protect\",\n    \"Ttp_Impersonation_CL\" : \"Impersonation Protect\"\n  });\nunion MimecastTTPUrl, MimecastTTPAttachment, MimecastTTPImpersonation\n| extend Type = tostring(TableMapping[Type]), Date = coalesce(todatetime(Date), now() - 14d)\n| make-series Count=count() default=0 on Date step 1d by Type",
+        "query": "let TableMapping = dynamic(\n  {\n    \"Ttp_Url_CL\" : \"URL Protect\",\n    \"Ttp_Attachment_CL\" : \"Attachment Protect\",\n    \"Ttp_Impersonation_CL\" : \"Impersonation Protect\"\n  });\nunion MimecastTTPUrl, MimecastTTPAttachment, MimecastTTPImpersonation\n| extend Type = tostring(TableMapping[Type])\n| make-series Count=count() default=0 on ['Event Time'] step 1d by Type",
         "size": 3,
         "showAnalytics": true,
         "title": "Detection counts for Attachment Protect, URL Protect and Impersonation Protect",
@@ -218,7 +218,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\"\n| extend Date = coalesce(todatetime(Date), now() - 14d)\n| make-series Count=count() default=0 on Date step 1d\n",
+              "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\"\n| make-series Count=count() default=0 on  ['Event Time'] step 1d\n",
               "size": 3,
               "showAnalytics": true,
               "title": "Malicious URL Detections",
@@ -255,7 +255,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\"\n    and From_User_EmailAddress contains \"@\"\n| summarize count() by From_User_EmailAddress\n| top 10 by count_\n",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\"\n    and ['From User Email Address'] contains \"@\"\n| summarize count() by ['From User Email Address']\n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Senders of Malicious URLs",
@@ -266,7 +266,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "From_User_EmailAddress",
+                      "group": "From User Email Address",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -279,7 +279,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(Url)\n| summarize count() by Url\n| top 10 by count_\n",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(Url)\n| summarize count() by Url\n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Malicious URLs",
@@ -303,7 +303,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\"\n    and User_EmailAddress contains \"@\"\n| summarize count() by User_EmailAddress\n| top 10 by count_\n",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\"\n    and ['User Email Address'] contains \"@\"\n| summarize count() by ['User Email Address']\n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Targeted Recipients",
@@ -314,7 +314,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "User_EmailAddress",
+                      "group": "User Email Address",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true,
@@ -346,7 +346,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(AdvancedPhishingResult_CredentialTheftBrands)\n| summarize count() by AdvancedPhishingResult_CredentialTheftBrands\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(['Advanced Phishing Result Credential Theft Brands'])\n| summarize count() by ['Advanced Phishing Result Credential Theft Brands']\n| top 10 by count_\n\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Advanced Phishing Results - Credential Theft Brands",
@@ -371,7 +371,7 @@
                       }
                     ],
                     "chartSettings": {
-                      "group": "AdvancedPhishingResult_CredentialTheftBrands",
+                      "group": "Advanced Phishing Result Credential Theft Brands",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -384,7 +384,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(AdvancedPhishingResult_CredentialTheftEvidence)\n| summarize count() by AdvancedPhishingResult_CredentialTheftEvidence\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty( ['Advanced Phishing Result Credential Theft Evidence'])\n| summarize count() by  ['Advanced Phishing Result Credential Theft Evidence']\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Advanced Phishing Results - Credential Theft Evidence",
@@ -398,7 +398,7 @@
                       "showBorder": false
                     },
                     "chartSettings": {
-                      "group": "AdvancedPhishingResult_CredentialTheftEvidence",
+                      "group": "Advanced Phishing Result Credential Theft Evidence",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -411,7 +411,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(AdvancedPhishingResult_CredentialTheftTags)\n| summarize count() by AdvancedPhishingResult_CredentialTheftTags\n| top 10 by count_\n",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(['Advanced Phishing Result Credential Theft Tags'])\n| summarize count() by ['Advanced Phishing Result Credential Theft Tags']\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Advanced Phishing Result - Credential Theft Tags",
@@ -444,7 +444,7 @@
                       ]
                     },
                     "chartSettings": {
-                      "group": "AdvancedPhishingResult_CredentialTheftTags",
+                      "group": "Advanced Phishing Result Credential Theft Tags",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -467,7 +467,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(TtpDefinition)\n| summarize count() by TtpDefinition\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(['Ttp Definition'])\n| summarize count() by ['Ttp Definition']\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 URL Protect Definitions",
@@ -478,7 +478,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "TtpDefinition",
+                      "group": "Ttp Definition",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -491,7 +491,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(Admin_Override)\n| summarize count() by Admin_Override\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(['Admin Override'])\n| summarize count() by ['Admin Override']\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Admin Over-rides",
@@ -502,7 +502,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "Admin_Override",
+                      "group": "Admin Override",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -515,7 +515,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(Action)\n| summarize count() by Action\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(Action)\n| summarize count() by Action\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 URL Protect Actions",
@@ -549,7 +549,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(User_Override)\n| summarize count() by User_Override\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(['User Override'])\n| summarize count() by ['User Override']\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 User Over-rides",
@@ -560,7 +560,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "User_Override",
+                      "group": "User Override",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -573,7 +573,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(SendingIP)\n| summarize count() by SendingIP\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(['Sending IP'])\n| summarize count() by ['Sending IP']\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Sending IP Addresses",
@@ -584,7 +584,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "SendingIP",
+                      "group": "Sending IP",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -597,7 +597,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(Category)\n| summarize count() by Category\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(Category)\n| summarize count() by Category\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Categories",
@@ -631,7 +631,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(User_AwarenessAction)\n| summarize count() by User_AwarenessAction\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(['User Awareness Action'])\n| summarize count() by ['User Awareness Action']\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 User Awareness Action",
@@ -642,7 +642,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "User_AwarenessAction",
+                      "group": "User Awareness Action",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -655,7 +655,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(Subject)\n| summarize count() by Subject\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(Subject)\n| summarize count() by Subject\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Email Subjects Related To Malicious URLs",
@@ -679,7 +679,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPUrl\n| where ScanResult == \"malicious\" and isnotempty(Actions)\n| summarize count() by Actions\n| top 10 by count_",
+                    "query": "MimecastTTPUrl\n| where ['Scan Result'] == \"malicious\" and isnotempty(Actions)\n| summarize count() by Actions\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Internal Email Protect Mitigations by Actions",
@@ -729,7 +729,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastTTPAttachment \n| where Result != \"safe\"\n| extend Date = coalesce(todatetime(Date), now() - 14d)\n| make-series Count=count() default=0 on Date step 1d\n",
+              "query": "MimecastTTPAttachment \n| where Result != \"safe\"\n| make-series Count=count() default=0 on ['Event Time'] step 1d\n",
               "size": 3,
               "showAnalytics": true,
               "title": "Malicious Attachment Detections",
@@ -760,7 +760,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPAttachment\n| where Result != \"safe\"\n    and RecipientAddress contains \"@\"\n| summarize count() by RecipientAddress\n| top 10 by count_\n",
+                    "query": "MimecastTTPAttachment\n| where Result != \"safe\"\n    and ['Recipient Address'] contains \"@\"\n| summarize count() by ['Recipient Address']\n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Recipients of Malicious Attachments",
@@ -771,7 +771,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "RecipientAddress",
+                      "group": "Recipient Address",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -784,7 +784,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPAttachment\n| where Result != \"safe\" and isnotempty(Action_Triggered)\n| summarize count() by Action_Triggered\n| top 10 by count_\n",
+                    "query": "MimecastTTPAttachment\n| where Result != \"safe\" and isnotempty(['Action Triggered'])\n| summarize count() by ['Action Triggered']\n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Protection Actions Triggered",
@@ -795,7 +795,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "Action_Triggered",
+                      "group": "Action Triggered",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -808,7 +808,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPAttachment\n| where Result != \"safe\"\n    and SenderAddress contains \"@\"\n| summarize count() by SenderAddress\n| top 10 by count_\n",
+                    "query": "MimecastTTPAttachment\n| where Result != \"safe\"\n    and ['Sender Address'] contains \"@\"\n| summarize count() by ['Sender Address']\n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Senders of Malicious Attachments",
@@ -819,7 +819,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "SenderAddress",
+                      "group": "Sender Address",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -842,7 +842,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPAttachment\n| where Result != \"safe\" and isnotempty(FileType)\n| summarize count() by FileType\n| top 10 by count_\n\n\n\n\n\n\n\n",
+                    "query": "MimecastTTPAttachment\n| where Result != \"safe\" and isnotempty(['File Type'])\n| summarize count() by ['File Type']\n| top 10 by count_\n\n\n\n\n\n\n\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Malicious Attachment File Types",
@@ -853,7 +853,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "FileType",
+                      "group": "File Type",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -948,7 +948,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPAttachment\n| where Result != \"safe\" and isnotempty(FileHash)\n| summarize count() by FileHash\n| top 10 by count_\n",
+                    "query": "MimecastTTPAttachment\n| where Result != \"safe\" and isnotempty(['File Hash'])\n| summarize count() by ['File Hash']\n| top 10 by count_\n\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Malicious Sha256 File Hashes",
@@ -959,7 +959,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "FileHash",
+                      "group": "File Hash",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -998,7 +998,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "MimecastTTPImpersonation\n| where TaggedMalicious == true\n| extend EventTime = coalesce(todatetime(EventTime), now() - 14d)\n| make-series Count=count() default=0 on EventTime step 1d\n",
+              "query": "MimecastTTPImpersonation\n| where ['Tagged Malicious'] == true\n| make-series Count=count() default=0 on ['Event Time'] step 1d\n",
               "size": 3,
               "showAnalytics": true,
               "title": "Malicious Impersonation Detections",
@@ -1029,7 +1029,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPImpersonation\n| where TaggedMalicious == true\n    and RecipientAddress contains \"@\"\n| summarize count() by RecipientAddress\n| top 10 by count_",
+                    "query": "MimecastTTPImpersonation\n| where ['Tagged Malicious'] == true\n    and ['Recipient Address'] contains \"@\"\n| summarize count() by ['Recipient Address']\n| top 10 by count_",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Recipients of Impersonation Emails",
@@ -1040,7 +1040,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "RecipientAddress",
+                      "group": "Recipient Address",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -1056,7 +1056,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPImpersonation\n| where  TaggedMalicious == true\n    and SenderAddress contains \"@\"\n| summarize count() by SenderAddress\n| top 10 by count_\n",
+                    "query": "MimecastTTPImpersonation\n| where  ['Tagged Malicious'] == true\n    and ['Sender Address'] contains \"@\"\n| summarize count() by ['Sender Address']\n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Top 10 Senders of Impersonation Emails",
@@ -1067,7 +1067,7 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "visualization": "piechart",
                     "chartSettings": {
-                      "group": "SenderAddress",
+                      "group": "Sender Address",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -1100,7 +1100,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPImpersonation\n| where  TaggedMalicious == true and isnotempty(ImpersonationResults)\n| summarize count() by ImpersonationResults\n| top 10 by count_\n",
+                    "query": "MimecastTTPImpersonation\n| where  ['Tagged Malicious'] == true and isnotempty(['Impersonation Results'])\n| summarize count() by ['Impersonation Results']\n|extend  ['Impersonation Results'] = trim(@\"[\\[\\]]\",['Impersonation Results'])\n|extend  ['Impersonation Results'] = trim(@\"[\\{\\}]\",['Impersonation Results'])\n| extend ['Impersonation Results'] = replace_string(['Impersonation Results'],',',', ') \n| extend ['Impersonation Results'] = replace_string(['Impersonation Results'],'\"','') \n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Grouped by Impersonation Result",
@@ -1153,7 +1153,7 @@
                       "yAxis": [
                         "count_"
                       ],
-                      "group": "ImpersonationResults",
+                      "group": "Impersonation Results",
                       "createOtherGroup": 10,
                       "showMetrics": false,
                       "showLegend": true
@@ -1179,7 +1179,7 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "MimecastTTPImpersonation\n| where  TaggedMalicious == true and isnotempty(Identifiers)\n| summarize count() by Identifiers\n| top 10 by count_\n",
+                    "query": "MimecastTTPImpersonation\n| where  ['Tagged Malicious'] == true and isnotempty(Identifiers)\n| summarize count() by Identifiers\n|extend  Identifiers = trim(@\"[\\[\\]]\",Identifiers)\n| extend Identifiers = replace_string(Identifiers,'\"','') \n| top 10 by count_\n",
                     "size": 3,
                     "showAnalytics": true,
                     "title": "Grouped by Impersonation Identifiers",

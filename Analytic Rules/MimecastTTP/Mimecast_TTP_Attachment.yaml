@@ -8,8 +8,8 @@ requiredDataConnectors:
   - connectorId: MimecastTTPAPI
     dataTypes:
       - MimecastTTPAttachment
-queryFrequency: 5m
-queryPeriod: 5m
+queryFrequency: 30m
+queryPeriod: 30m
 triggerOperator: gt
 triggerThreshold: 0
 tactics:
@@ -20,6 +20,7 @@ relevantTechniques:
 query: |
   MimecastTTPAttachment
   | where Result != "safe"
+  | extend SenderAddress = ['Sender Address'] ,RecipientAddress = ['Recipient Address']
 suppressionDuration: 5h
 suppressionEnabled: false
 incidentConfiguration:

@@ -3,6 +3,7 @@
 import inspect
 import requests
 import json
+from json.decoder import JSONDecodeError
 import hashlib
 from .state_manager import StateManager
 from .mimecast_exception import MimecastException
@@ -19,6 +20,7 @@ from tenacity import (
     RetryError,
 )
 from requests.exceptions import ConnectionError
+import datetime
 
 
 class Utils:
@@ -202,7 +204,7 @@ class Utils:
         __method_name = inspect.currentframe().f_code.co_name
         if isinstance(response, dict):
             return False
-        if response.status_code in consts.RETRYABLE_STATUS_CODE:
+        if response.status_code in consts.RETRY_STATUS_CODE:
             applogger.info(
                 "{}(method={}) : Retrying due to status code : {}".format(
                     consts.LOGS_STARTS_WITH,
@@ -215,21 +217,27 @@ class Utils:
 
     @retry(
         stop=stop_after_attempt(consts.MAX_RETRIES),
-        wait=wait_exponential(multiplier=2, min=1, max=30),
+        wait=wait_exponential(
+            multiplier=consts.BACKOFF_MULTIPLIER,
+            min=consts.MIN_SLEEP_TIME,
+            max=consts.MAX_SLEEP_TIME,
+        ),
         retry=retry_any(
             retry_if_result(retry_on_status_code),
             retry_if_exception_type(ConnectionError),
         ),
         before_sleep=lambda retry_state: applogger.error(
-            "{}(method = {})  : Retry number: {} due to exception : {} ".format(
+            "{}(method = {})  : Retrying after {} seconds, attempt number : {} ".format(
                 consts.LOGS_STARTS_WITH,
                 " Retry Decorator",
+                retry_state.upcoming_sleep,
                 retry_state.attempt_number,
-                retry_state.outcome.exception(),
             )
         ),
     )
-    def make_rest_call(self, method, url, params=None, data=None, json=None, check_retry=True):
+    def make_rest_call(
+        self, method, url, params=None, data=None, json=None, check_retry=True
+    ):
         """Make a rest call.
 
         Args:
@@ -281,7 +289,9 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Bad Request = {}, Status code : {}".format(response.text, response.status_code),
+                        "Bad Request = {}, Status code : {}".format(
+                            response.text, response.status_code
+                        ),
                     )
                 )
                 self.handle_failed_response_for_failure(response)
@@ -312,7 +322,9 @@ class Utils:
                     )
                     check_retry = False
                     self.authenticate_mimecast_api(check_retry)
-                    return self.make_rest_call(method, url=url, json=json, check_retry=check_retry)
+                    return self.make_rest_call(
+                        method, url=url, json=json, check_retry=check_retry
+                    )
                 else:
                     applogger.error(
                         self.log_format.format(
@@ -320,7 +332,9 @@ class Utils:
                             __method_name,
                             self.azure_function_name,
                             "Max retry reached for generating access token,"
-                            "Error message = {}, Error code = {}".format(error_message, error_code),
+                            "Error message = {}, Error code = {}".format(
+                                error_message, error_code
+                            ),
                         )
                     )
                     raise MimecastException()
@@ -340,7 +354,9 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Not Found, URL : {}, Status code : {}".format(url, response.status_code),
+                        "Not Found, URL : {}, Status code : {}".format(
+                            url, response.status_code
+                        ),
                     )
                 )
                 raise MimecastException()
@@ -360,7 +376,9 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Too Many Requests, Status code : {} ".format(response.status_code),
+                        "Too Many Requests, Status code : {} ".format(
+                            response.status_code
+                        ),
                     )
                 )
                 return response
@@ -370,7 +388,9 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Internal Server Error, Status code : {}".format(response.status_code),
+                        "Internal Server Error, Status code : {}".format(
+                            response.status_code
+                        ),
                     )
                 )
                 return self.handle_failed_response_for_failure(response)
@@ -379,7 +399,9 @@ class Utils:
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    "Unexpected Error = {}, Status code : {}".format(response.text, response.status_code),
+                    "Unexpected Error = {}, Status code : {}".format(
+                        response.text, response.status_code
+                    ),
                 )
             )
             raise MimecastException()
@@ -396,7 +418,7 @@ class Utils:
                 )
             )
             raise MimecastException()
-        except json.decoder.JSONDecodeError as error:
+        except JSONDecodeError as error:
             applogger.error(
                 self.log_format.format(
                     consts.LOGS_STARTS_WITH,
@@ -551,7 +573,9 @@ class Utils:
             )
             self.headers = {}
             url = "{}{}".format(consts.BASE_URL, consts.ENDPOINTS["OAUTH2"])
-            response = self.make_rest_call(method="POST", url=url, data=body, check_retry=check_retry)
+            response = self.make_rest_call(
+                method="POST", url=url, data=body, check_retry=check_retry
+            )
             if "access_token" in response:
                 access_token = response.get("access_token")
                 self.headers.update(
@@ -574,7 +598,9 @@ class Utils:
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    "Error occurred while fetching the access token from the response = {}.".format(response),
+                    "Error occurred while fetching the access token from the response = {}.".format(
+                        response
+                    ),
                 )
             )
             raise MimecastException()
@@ -586,7 +612,9 @@ class Utils:
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    consts.MAX_RETRY_ERROR_MSG.format(error, error.last_attempt.exception()),
+                    consts.MAX_RETRY_ERROR_MSG.format(
+                        error, error.last_attempt.exception()
+                    ),
                 )
             )
             raise MimecastException()
@@ -621,23 +649,45 @@ class Utils:
             list: hashed data list
         """
         __method_name = inspect.currentframe().f_code.co_name
-        try:
-            hashed_data = []
-            for record in data_to_hash:
+        hashed_data = []
+        for record in data_to_hash:
+            try:
                 json_string = json.dumps(record)
-                res_hash = hashlib.sha256(json_string.encode("utf-8", errors="replace")).hexdigest()
+                res_hash = hashlib.sha256(
+                    json_string.encode("utf-8", errors="replace")
+                ).hexdigest()
                 hashed_data.append(res_hash)
-            return hashed_data
-        except Exception as err:
-            applogger.error(
-                self.log_format.format(
-                    consts.LOGS_STARTS_WITH,
-                    __method_name,
-                    self.azure_function_name,
-                    consts.UNEXPECTED_ERROR_MSG.format(err),
+            except TypeError as err:
+                applogger.error(
+                    self.log_format.format(
+                        consts.LOGS_STARTS_WITH,
+                        __method_name,
+                        self.azure_function_name,
+                        consts.TYPE_ERROR_MSG.format(err),
+                    )
                 )
-            )
-            raise MimecastException()
+                continue
+            except ValueError as err:
+                applogger.error(
+                    self.log_format.format(
+                        consts.LOGS_STARTS_WITH,
+                        __method_name,
+                        self.azure_function_name,
+                        consts.VALUE_ERROR_MSG.format(err),
+                    )
+                )
+                continue
+            except Exception as err:
+                applogger.error(
+                    self.log_format.format(
+                        consts.LOGS_STARTS_WITH,
+                        __method_name,
+                        self.azure_function_name,
+                        consts.UNEXPECTED_ERROR_MSG.format(err),
+                    )
+                )
+                continue
+        return hashed_data
 
     def compare_data_with_checkpoint(self, data_to_compare, state_manager_obj):
         """Compare data with checkpoint hash and return unique records.
@@ -662,8 +712,11 @@ class Utils:
                         "Found hashed data checkpoint.",
                     )
                 )
-                hash_record = {hashed_data[i]: record for i, record in enumerate(data_to_compare)}
-                unique_data = [hash_record[hash] for hash in hashed_data if hash not in checkpoint_hash_list]
+                hash_record = {
+                    hashed_data[i]: record for i, record in enumerate(data_to_compare)
+                }
+                unique_hashes = set(hashed_data) - set(checkpoint_hash_list)
+                unique_data = [hash_record[hash] for hash in unique_hashes]
                 return unique_data
             applogger.info(
                 self.log_format.format(
@@ -687,18 +740,34 @@ class Utils:
             )
             raise MimecastException()
 
-    def filter_unique_data_and_post(self, data_to_post, state_manager_obj, table_name):
-        """Get unique data and post to sentinel.
+    def filter_unique_data_and_post(
+        self,
+        data_to_post,
+        hash_file_state_manager_obj,
+        table_name,
+        checkpoint_data,
+        checkpoint_obj,
+        next_page_token_flag,
+    ):
+        """Filters unique data from the given data to post and posts it to azure Sentinel log analytics.
 
         Args:
-            data_to_post (list): list of data
-            state_manager_obj (Statemanager): Statemanager object to get hash checkpoint
-            table_name (str): log analytics workspace table name
+            data_to_post (list): The data to be posted to azure Sentinel log analytics.
+            hash_file_state_manager_obj (StateManager): The StateManager object to retrieve hash checkpoint data.
+            table_name (str): The custom log table name in which data will be added.
+            checkpoint_data (dict): The checkpoint data to be updated.
+            checkpoint_obj (StateManager): The StateManager object to post checkpoint data to.
+            next_page_token_flag (bool): A flag indicating whether a next page token is present.
+
+        Returns:
+            bool: True if checkpoint data is deleted, otherwise False.
         """
         __method_name = inspect.currentframe().f_code.co_name
         try:
             if self.first_page:
-                data_to_post = self.compare_data_with_checkpoint(data_to_post, state_manager_obj)
+                data_to_post = self.compare_data_with_checkpoint(
+                    data_to_post, hash_file_state_manager_obj
+                )
                 self.first_page = False
             if len(data_to_post) > 0:
                 applogger.info(
@@ -706,10 +775,31 @@ class Utils:
                         consts.LOGS_STARTS_WITH,
                         __method_name,
                         self.azure_function_name,
-                        "Posting data to azure Sentinel log analytics, data count : {}.".format(len(data_to_post)),
+                        "Posting data to azure Sentinel log analytics, data count : {}.".format(
+                            len(data_to_post)
+                        ),
                     )
                 )
                 post_data(json.dumps(data_to_post), log_type=table_name)
+                if not next_page_token_flag:
+                    if checkpoint_data:
+                        applogger.info(
+                            self.log_format.format(
+                                consts.LOGS_STARTS_WITH,
+                                __method_name,
+                                self.azure_function_name,
+                                "New data found in same last page, so resetting checkpoint",
+                            )
+                        )
+                        checkpoint_data.update(
+                            {"date": datetime.datetime.utcnow().isoformat()}
+                        )
+                    else:
+                        checkpoint_data = {
+                            "date": datetime.datetime.utcnow().isoformat()
+                        }
+                    self.post_checkpoint_data(checkpoint_obj, checkpoint_data)
+                return False
             else:
                 applogger.info(
                     self.log_format.format(
@@ -719,8 +809,61 @@ class Utils:
                         "Data already posted to sentinel, no new data found.",
                     )
                 )
+                return self.compare_last_pagetoken_time(
+                    checkpoint_data, checkpoint_obj, hash_file_state_manager_obj
+                )
+
         except MimecastException:
             raise MimecastException()
+        except Exception as err:
+            applogger.error(
+                self.log_format.format(
+                    consts.LOGS_STARTS_WITH,
+                    __method_name,
+                    self.azure_function_name,
+                    consts.UNEXPECTED_ERROR_MSG.format(err),
+                )
+            )
+            raise MimecastException()
+
+    def compare_last_pagetoken_time(
+        self, checkpoint_data, checkpoint_obj, hash_file_state_manager_obj
+    ):
+        """Compare last page token time with current time.
+
+        Args:
+            checkpoint_data (dict): checkpoint data
+            checkpoint_obj (StateManager): The StateManager object to post checkpoint data to.
+            hash_file_state_manager_obj (StateManager): The StateManager object to retrieve hash checkpoint data.
+
+        Returns:
+            checkpoint_data (dict): checkpoint data
+        """
+        __method_name = inspect.currentframe().f_code.co_name
+        try:
+            if checkpoint_data:
+                last_page_token_time = checkpoint_data.get("date")
+                if (
+                    last_page_token_time
+                    and datetime.datetime.utcnow()
+                    - datetime.datetime.fromisoformat(last_page_token_time)
+                    >= datetime.timedelta(hours=12)
+                ):
+                    applogger.info(
+                        self.log_format.format(
+                            consts.LOGS_STARTS_WITH,
+                            __method_name,
+                            self.azure_function_name,
+                            "Last date time more than 12 hours old, so resetting checkpoints",
+                        )
+                    )
+                    checkpoint_data = {}
+                    self.post_checkpoint_data(checkpoint_obj, checkpoint_data)
+                    self.post_checkpoint_data(
+                        hash_file_state_manager_obj, checkpoint_data
+                    )
+                    return True
+            return False
         except Exception as err:
             applogger.error(
                 self.log_format.format(

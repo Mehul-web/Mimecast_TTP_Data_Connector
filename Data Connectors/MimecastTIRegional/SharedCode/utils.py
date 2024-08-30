@@ -4,6 +4,7 @@ import inspect
 import requests
 import time
 import json
+from json.decoder import JSONDecodeError
 from .state_manager import StateManager
 from .mimecast_exception import MimecastException
 from .logger import applogger
