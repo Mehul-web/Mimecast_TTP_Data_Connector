@@ -112,8 +112,6 @@ class MimeCastAuditToSentinel(Utils):
             self.post_checkpoint_data(
                 self.state_manager, data=checkpoint, dump_flag=True
             )
-
-            self.set_payload(checkpoint["start_time"], checkpoint["end_time"])
             self.start_date = checkpoint["start_time"]
             applogger.info(
                 self.log_format.format(
@@ -124,7 +122,7 @@ class MimeCastAuditToSentinel(Utils):
                 )
             )
 
-            return checkpoint
+            return checkpoint["start_time"], checkpoint["end_time"]
         except MimecastException:
             raise MimecastException()
         except KeyError as key_error:
@@ -235,14 +233,12 @@ class MimeCastAuditToSentinel(Utils):
 
                 mimecast_start_date = datetime.datetime.strptime(
                     start_date, consts.TIME_FORMAT
-                ) + datetime.timedelta(seconds=1)
+                )
                 checkpoint["start_time"] = mimecast_start_date.strftime(
                     consts.TIME_FORMAT
                 )
 
-                end_date = datetime.datetime.fromisoformat(
-                    utc_timestamp
-                ) - datetime.timedelta(seconds=15)
+                end_date = datetime.datetime.fromisoformat(utc_timestamp)
                 mimecast_end_date = end_date.strftime(consts.TIME_FORMAT)
                 checkpoint["end_time"] = mimecast_end_date
 
@@ -397,6 +393,21 @@ class MimeCastAuditToSentinel(Utils):
                 if not has_more_data:
                     break
 
+                start_datetime = payload["data"][0]["startDateTime"]
+                end_datetime = payload["data"][0]["endDateTime"]
+                page_token = payload["meta"]["pagination"].get("pageToken", "")
+
+                applogger.info(
+                    self.log_format.format(
+                        consts.LOGS_STARTS_WITH,
+                        __method_name,
+                        self.azure_function_name,
+                        "Making Mimecast API request with start date : {} end date : {} , token : {}".format(
+                            start_datetime, end_datetime, page_token
+                        ),
+                    )
+                )
+
                 response = self.make_rest_call(
                     method="POST",
                     url=consts.BASE_URL + consts.ENDPOINTS["AUDIT_ENDPOINT"],
@@ -405,20 +416,33 @@ class MimeCastAuditToSentinel(Utils):
 
                 data = response.get("data")
                 if len(data) > 0:
-                    data = json.dumps(data)
-                    sentinel.post_data(data, consts.TABLE_NAME["Audit"])
+                    data_to_post = json.dumps(data)
+                    sentinel.post_data(data_to_post, consts.TABLE_NAME["Audit"])
                     applogger.info(
                         self.log_format.format(
                             consts.LOGS_STARTS_WITH,
                             __method_name,
                             self.azure_function_name,
-                            "Data ingested to Sentinel",
+                            "Data ingested to Sentinel ,start date : {} end date : {} , count : {} ".format(
+                                start_date, end_date, len(data)
+                            ),
+                        )
+                    )
+                else:
+                    applogger.info(
+                        self.log_format.format(
+                            consts.LOGS_STARTS_WITH,
+                            __method_name,
+                            self.azure_function_name,
+                            "No Data found",
                         )
                     )
 
                 if "next" in response["meta"]["pagination"]:
                     token = response["meta"]["pagination"]["next"]
                     checkpoint["next"] = token
+                    checkpoint["start_time"] = start_datetime
+                    checkpoint["end_time"] = end_datetime
                     self.post_checkpoint_data(
                         self.state_manager, checkpoint, dump_flag=True
                     )
@@ -433,29 +457,19 @@ class MimeCastAuditToSentinel(Utils):
                         )
                     )
                 else:
-                    checkpoint = self.checkpoint_field()
-                    start_date = checkpoint.get("start_time")
-                    end_date = checkpoint.get("end_time")
-                    self.update_date_in_checkpoint()
                     applogger.info(
                         self.log_format.format(
                             consts.LOGS_STARTS_WITH,
                             __method_name,
                             self.azure_function_name,
-                            "Successfully fetched all the data from Mimecast Audit, from : {} , to : {}".format(
+                            "Successfully completed the execution between start date :{} and end date : {}".format(
                                 start_date, end_date
                             ),
                         )
                     )
+                    start_date, end_date = self.update_date_in_checkpoint()
+                    payload = self.set_payload(start_date, end_date)
 
-                applogger.info(
-                    self.log_format.format(
-                        consts.LOGS_STARTS_WITH,
-                        __method_name,
-                        self.azure_function_name,
-                        "Fetching data using next pageToken",
-                    )
-                )
         except MimecastException:
             raise MimecastException()
         except MimecastTimeoutException:
