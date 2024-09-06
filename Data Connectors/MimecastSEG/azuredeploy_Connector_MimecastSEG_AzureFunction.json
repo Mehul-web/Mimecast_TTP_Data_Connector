@@ -47,7 +47,7 @@
             "defaultValue": "",
             "type": "string",
             "metadata": {
-                "description": "Enter the start date in the 'yyyy-mm-dd' format. If you do not provide a date, data from the last 15 days will be fetched automatically. Ensure that the date is in the past and properly formatted"
+                "description": "Enter the start date in the 'yyyy-mm-dd' format. If you do not provide a date, data from the last 60 days will be fetched automatically. Ensure that the date is in the past and properly formatted"
             }
         },
         "Schedule": {
@@ -186,7 +186,7 @@
                 "alwaysOn": true,
                 "reserved": true,
                 "siteConfig": {
-                    "linuxFxVersion": "python|3.9"
+                    "linuxFxVersion": "python|3.11"
                 }
             },
             "resources": [

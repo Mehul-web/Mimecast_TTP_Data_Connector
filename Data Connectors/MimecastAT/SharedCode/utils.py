@@ -424,7 +424,9 @@ class Utils:
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     self.azure_function_name,
-                    consts.JSON_DECODE_ERROR_MSG.format(error),
+                    consts.JSON_DECODE_ERROR_MSG.format(
+                        "{}, API Response = {}".format(error, response.text)
+                    ),
                 )
             )
             raise MimecastException()
@@ -847,7 +849,7 @@ class Utils:
                     last_page_token_time
                     and datetime.datetime.utcnow()
                     - datetime.datetime.fromisoformat(last_page_token_time)
-                    >= datetime.timedelta(hours=12)
+                    >= datetime.timedelta(hours=consts.CHECKPOINT_RESET_TIME)
                 ):
                     applogger.info(
                         self.log_format.format(
