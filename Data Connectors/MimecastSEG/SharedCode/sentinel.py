@@ -24,10 +24,22 @@ def build_signature(
 ):
     """To build signature which is required in header."""
     x_headers = "x-ms-date:" + date
-    string_to_hash = method + "\n" + str(content_length) + "\n" + content_type + "\n" + x_headers + "\n" + resource
+    string_to_hash = (
+        method
+        + "\n"
+        + str(content_length)
+        + "\n"
+        + content_type
+        + "\n"
+        + x_headers
+        + "\n"
+        + resource
+    )
     bytes_to_hash = bytes(string_to_hash, encoding="utf-8")
     decoded_key = base64.b64decode(consts.WORKSPACE_KEY)
-    encoded_hash = base64.b64encode(hmac.new(decoded_key, bytes_to_hash, digestmod=hashlib.sha256).digest()).decode()
+    encoded_hash = base64.b64encode(
+        hmac.new(decoded_key, bytes_to_hash, digestmod=hashlib.sha256).digest()
+    ).decode()
     authorization = "SharedKey {}:{}".format(consts.WORKSPACE_ID, encoded_hash)
 
     return authorization
@@ -66,7 +78,13 @@ def post_data(body, log_type):
             )
         )
         raise MimecastException()
-    uri = "https://" + consts.WORKSPACE_ID + ".ods.opinsights.azure.com" + resource + "?api-version=2016-04-01"
+    uri = (
+        "https://"
+        + consts.WORKSPACE_ID
+        + ".ods.opinsights.azure.com"
+        + resource
+        + "?api-version=2016-04-01"
+    )
 
     headers = {
         "content-type": content_type,
@@ -78,7 +96,9 @@ def post_data(body, log_type):
     while retry_count < consts.SENTINEL_RETRY_COUNT:
         try:
 
-            response = requests.post(uri, data=body, headers=headers, timeout=consts.MAX_TIMEOUT_SENTINEL)
+            response = requests.post(
+                uri, data=body, headers=headers, timeout=consts.MAX_TIMEOUT_SENTINEL
+            )
 
             result = handle_response(response, body, log_type, async_call=False)
 
@@ -205,7 +225,13 @@ async def post_data_async(index, body, session: aiohttp.ClientSession, log_type)
             )
         )
         raise MimecastException()
-    uri = "https://" + consts.WORKSPACE_ID + ".ods.opinsights.azure.com" + resource + "?api-version=2016-04-01"
+    uri = (
+        "https://"
+        + consts.WORKSPACE_ID
+        + ".ods.opinsights.azure.com"
+        + resource
+        + "?api-version=2016-04-01"
+    )
 
     headers = {
         "content-type": content_type,
@@ -217,7 +243,9 @@ async def post_data_async(index, body, session: aiohttp.ClientSession, log_type)
     while retry_count < consts.SENTINEL_RETRY_COUNT:
         try:
 
-            response = await session.post(uri, data=body, headers=headers, timeout=consts.MAX_TIMEOUT_SENTINEL)
+            response = await session.post(
+                uri, data=body, headers=headers, timeout=consts.MAX_TIMEOUT_SENTINEL
+            )
 
             result = handle_response(response, body, log_type, async_call=True)
 
@@ -320,9 +348,8 @@ def handle_response(response, body, log_type, async_call=True):
 
         if async_call is False:
             response_code = response.status_code
-
-        response_code = response.status
-
+        else:
+            response_code = response.status
         if response_code >= 200 and response_code <= 299:
             applogger.debug(
                 "{}(method={}) : Status_code: {} Accepted: Data Posted Successfully to azure sentinel.".format(
@@ -344,7 +371,9 @@ def handle_response(response, body, log_type, async_call=True):
             )
             curent_corrupt_data_obj = StateManager(
                 consts.CONN_STRING,
-                "{}-Ingest-To-Sentinel-Corrupt_{}".format(log_type, str(int(time.time()))),
+                "{}-Ingest-To-Sentinel-Corrupt_{}".format(
+                    log_type, str(int(time.time()))
+                ),
                 consts.FILE_SHARE_NAME,
             )
             curent_corrupt_data_obj.post(body)
