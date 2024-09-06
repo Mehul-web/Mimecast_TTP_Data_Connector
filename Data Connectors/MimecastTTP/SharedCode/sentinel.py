@@ -181,12 +181,12 @@ def handle_response(response, body, log_type):
             return response.status_code
         elif response.status_code == 400:
             applogger.error(
-                "{}(method={}) : {} : Response code: {} from posting data to log analytics. Error: {}".format(
+                "{}(method={}) : {} : Response code: {} from posting data to log analytics. Response: {}".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response.status_code,
-                    response.content,
+                    response.text,
                 )
             )
             curent_corrupt_data_obj = StateManager(
@@ -199,25 +199,25 @@ def handle_response(response, body, log_type):
             raise MimecastException()
         elif response.status_code == 403:
             applogger.error(
-                "{}(method={}) : {} :Response code :{} Error occurred for build signature: {} Issue with WorkspaceKey."
-                "Kindly verify your WorkspaceKey".format(
+                "{}(method={}) : {} :Response code :{} Error occurred for build signature: Response: {} ."
+                " Issue with WorkspaceKey, Kindly verify your WorkspaceKey".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response.status_code,
-                    response.content,
+                    response.text,
                 )
             )
             raise MimecastException()
         elif response.status_code == 429:
             applogger.error(
-                "{}(method={}) : {} : Error occurred: Response code : {} Too many request: {} . "
+                "{}(method={}) : {} : Error occurred: Response code : {} Too many request: Response: {} . "
                 "sleeping for {} seconds and retrying..".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response.status_code,
-                    response.content,
+                    response.text,
                     consts.INGESTION_ERROR_SLEEP_TIME,
                 )
             )
@@ -225,13 +225,13 @@ def handle_response(response, body, log_type):
             return False
         elif response.status_code == 500:
             applogger.error(
-                "{}(method={}) : {} : Error occurred:  Response code : {} Internal Server Error: {} . "
+                "{}(method={}) : {} : Error occurred:  Response code : {} Internal Server Error: Response: {} . "
                 "sleeping for {} seconds and retrying..".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response.status_code,
-                    response.content,
+                    response.text,
                     consts.INGESTION_ERROR_SLEEP_TIME,
                 )
             )
@@ -239,25 +239,25 @@ def handle_response(response, body, log_type):
             return False
         elif response.status_code == 503:
             applogger.error(
-                "{}(method={}) : {} : Error occurred: Response code : {} Service Unavailable: {} . "
+                "{}(method={}) : {} : Error occurred: Response code : {} Service Unavailable: Response: {} . "
                 "sleeping for {} seconds and retrying..".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response.status_code,
-                    response.content,
+                    response.text,
                     consts.INGESTION_ERROR_SLEEP_TIME,
                 )
             )
             time.sleep(consts.INGESTION_ERROR_SLEEP_TIME)
             return False
         applogger.error(
-            "{}(method={}) : {} : Response code: {} from posting data to log analytics. Error: {}".format(
+            "{}(method={}) : {} : Response code: {} from posting data to log analytics. Response: {}".format(
                 consts.LOGS_STARTS_WITH,
                 __method_name,
                 log_type,
                 response.status_code,
-                response.content,
+                response.text,
             )
         )
         raise MimecastException()

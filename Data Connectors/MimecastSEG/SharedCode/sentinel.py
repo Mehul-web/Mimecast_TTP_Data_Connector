@@ -24,22 +24,10 @@ def build_signature(
 ):
     """To build signature which is required in header."""
     x_headers = "x-ms-date:" + date
-    string_to_hash = (
-        method
-        + "\n"
-        + str(content_length)
-        + "\n"
-        + content_type
-        + "\n"
-        + x_headers
-        + "\n"
-        + resource
-    )
+    string_to_hash = method + "\n" + str(content_length) + "\n" + content_type + "\n" + x_headers + "\n" + resource
     bytes_to_hash = bytes(string_to_hash, encoding="utf-8")
     decoded_key = base64.b64decode(consts.WORKSPACE_KEY)
-    encoded_hash = base64.b64encode(
-        hmac.new(decoded_key, bytes_to_hash, digestmod=hashlib.sha256).digest()
-    ).decode()
+    encoded_hash = base64.b64encode(hmac.new(decoded_key, bytes_to_hash, digestmod=hashlib.sha256).digest()).decode()
     authorization = "SharedKey {}:{}".format(consts.WORKSPACE_ID, encoded_hash)
 
     return authorization
@@ -78,13 +66,7 @@ def post_data(body, log_type):
             )
         )
         raise MimecastException()
-    uri = (
-        "https://"
-        + consts.WORKSPACE_ID
-        + ".ods.opinsights.azure.com"
-        + resource
-        + "?api-version=2016-04-01"
-    )
+    uri = "https://" + consts.WORKSPACE_ID + ".ods.opinsights.azure.com" + resource + "?api-version=2016-04-01"
 
     headers = {
         "content-type": content_type,
@@ -96,9 +78,7 @@ def post_data(body, log_type):
     while retry_count < consts.SENTINEL_RETRY_COUNT:
         try:
 
-            response = requests.post(
-                uri, data=body, headers=headers, timeout=consts.MAX_TIMEOUT_SENTINEL
-            )
+            response = requests.post(uri, data=body, headers=headers, timeout=consts.MAX_TIMEOUT_SENTINEL)
 
             result = handle_response(response, body, log_type, async_call=False)
 
@@ -225,13 +205,7 @@ async def post_data_async(index, body, session: aiohttp.ClientSession, log_type)
             )
         )
         raise MimecastException()
-    uri = (
-        "https://"
-        + consts.WORKSPACE_ID
-        + ".ods.opinsights.azure.com"
-        + resource
-        + "?api-version=2016-04-01"
-    )
+    uri = "https://" + consts.WORKSPACE_ID + ".ods.opinsights.azure.com" + resource + "?api-version=2016-04-01"
 
     headers = {
         "content-type": content_type,
@@ -243,9 +217,7 @@ async def post_data_async(index, body, session: aiohttp.ClientSession, log_type)
     while retry_count < consts.SENTINEL_RETRY_COUNT:
         try:
 
-            response = await session.post(
-                uri, data=body, headers=headers, timeout=consts.MAX_TIMEOUT_SENTINEL
-            )
+            response = await session.post(uri, data=body, headers=headers, timeout=consts.MAX_TIMEOUT_SENTINEL)
 
             result = handle_response(response, body, log_type, async_call=True)
 
@@ -350,6 +322,7 @@ def handle_response(response, body, log_type, async_call=True):
             response_code = response.status_code
         else:
             response_code = response.status
+
         if response_code >= 200 and response_code <= 299:
             applogger.debug(
                 "{}(method={}) : Status_code: {} Accepted: Data Posted Successfully to azure sentinel.".format(
@@ -366,39 +339,37 @@ def handle_response(response, body, log_type, async_call=True):
                     __method_name,
                     log_type,
                     response_code,
-                    response.content,
+                    response.text,
                 )
             )
             curent_corrupt_data_obj = StateManager(
                 consts.CONN_STRING,
-                "{}-Ingest-To-Sentinel-Corrupt_{}".format(
-                    log_type, str(int(time.time()))
-                ),
+                "{}-Ingest-To-Sentinel-Corrupt_{}".format(log_type, str(int(time.time()))),
                 consts.FILE_SHARE_NAME,
             )
             curent_corrupt_data_obj.post(body)
             raise MimecastException()
         elif response_code == 403:
             applogger.error(
-                "{}(method={}) : {} : Response code :{} Error occurred for build signature: {} Issue with WorkspaceKey."
-                "Kindly verify your WorkspaceKey".format(
+                "{}(method={}) : {} : Response code :{} Error occurred for build signature: Response: {} ."
+                " Issue with WorkspaceKey ,Kindly verify your WorkspaceKey".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response_code,
-                    response.content,
+                    response.text,
                 )
             )
             raise MimecastException()
         elif response_code == 429:
             applogger.error(
-                "{}(method={}) : {} : Error occurred: Response code : {} Too many request: {} . "
+                "{}(method={}) : {} : Error occurred: Response code : {} Too many request: Response: {} . "
                 "sleeping for {} seconds and retrying..".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response_code,
-                    response.content,
+                    response.text,
                     consts.INGESTION_ERROR_SLEEP_TIME,
                 )
             )
@@ -406,13 +377,13 @@ def handle_response(response, body, log_type, async_call=True):
             return False
         elif response_code == 500:
             applogger.error(
-                "{}(method={}) : {} : Error occurred:  Response code : {} Internal Server Error: {} . "
+                "{}(method={}) : {} : Error occurred:  Response code : {} Internal Server Error: Response: {} . "
                 "sleeping for {} seconds and retrying..".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response_code,
-                    response.content,
+                    response.text,
                     consts.INGESTION_ERROR_SLEEP_TIME,
                 )
             )
@@ -420,25 +391,25 @@ def handle_response(response, body, log_type, async_call=True):
             return False
         elif response_code == 503:
             applogger.error(
-                "{}(method={}) : {} : Error occurred: Response code : {} Service Unavailable: {} . "
+                "{}(method={}) : {} : Error occurred: Response code : {} Service Unavailable: Response: {} . "
                 "sleeping for {} seconds and retrying..".format(
                     consts.LOGS_STARTS_WITH,
                     __method_name,
                     log_type,
                     response_code,
-                    response.content,
+                    response.text,
                     consts.INGESTION_ERROR_SLEEP_TIME,
                 )
             )
             time.sleep(consts.INGESTION_ERROR_SLEEP_TIME)
             return False
         applogger.error(
-            "{}(method={}) : {} : Response code: {} from posting data to log analytics. Error: {}".format(
+            "{}(method={}) : {} : Response code: {} from posting data to log analytics. Response: {}".format(
                 consts.LOGS_STARTS_WITH,
                 __method_name,
                 log_type,
                 response_code,
-                response.content,
+                response.text,
             )
         )
         raise MimecastException()

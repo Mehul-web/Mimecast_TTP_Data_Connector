@@ -392,18 +392,6 @@ class MimecastCGToSentinel(Utils):
                 )
             )
             raise MimecastException()
-        except gzip.LargeArchiveException as err:
-            applogger.error(
-                self.log_format.format(
-                    consts.LOGS_STARTS_WITH,
-                    __method_name,
-                    self.azure_function_name,
-                    "gzip file is too large to be decompressed: {}, for task = {}".format(
-                        err, index
-                    ),
-                )
-            )
-            raise MimecastException()
         except UnicodeDecodeError as err:
             applogger.error(
                 self.log_format.format(
