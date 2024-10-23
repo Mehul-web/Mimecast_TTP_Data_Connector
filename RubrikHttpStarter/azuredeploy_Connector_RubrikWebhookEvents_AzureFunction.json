@@ -238,7 +238,7 @@
                         "ThreatHunts_table_name": "[parameters('ThreatHunts_table_name')]",
                         "Anomalies_table_name": "[parameters('Anomalies_table_name')]",
                         "LogLevel": "[parameters('LogLevel')]",
-                        "WEBSITE_RUN_FROM_PACKAGE": "https://aka.ms/sentinel-RubrikWebhookEvents-functionapp"
+                        "WEBSITE_RUN_FROM_PACKAGE": "https://github.com/Mehul-web/Mimecast_TTP_Data_Connector/raw/refs/heads/main/RubrikHttpStarter/RubrikDataConnector.zip"
                     }
                 }
             ]
