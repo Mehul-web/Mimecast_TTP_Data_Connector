@@ -237,6 +237,7 @@
                         "RansomwareAnalysis_table_name": "[parameters('RansomwareAnalysis_table_name')]",
                         "ThreatHunts_table_name": "[parameters('ThreatHunts_table_name')]",
                         "Anomalies_table_name": "[parameters('Anomalies_table_name')]",
+                        "Events_table_name": "[parameters('Events_table_name')]",
                         "LogLevel": "[parameters('LogLevel')]",
                         "WEBSITE_RUN_FROM_PACKAGE": "https://github.com/Mehul-web/Mimecast_TTP_Data_Connector/raw/refs/heads/main/RubrikHttpStarter/RubrikDataConnector.zip"
                     }
