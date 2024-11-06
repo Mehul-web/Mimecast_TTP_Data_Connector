@@ -80,7 +80,7 @@
         "Keyvault Name": {
             "type": "string",
             "metadata": {
-                "description": "Enter name of keyvault where service account credentials are stored(e.g. RubrikSentinelKeyVault)"
+                "description": "Enter name of keyvault where service account credentials are stored(Example: RubrikSentinelKeyVault)"
             }
         },  
         "Tenant Id": {
