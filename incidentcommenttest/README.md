@@ -10,10 +10,10 @@ This playbook retrieves sensitive IP and Host data to enrich the incident detail
 ### Deployment instructions
 1. To deploy the Playbook, click the Deploy to Azure button. This will launch the ARM Template deployment wizard.
 2. Fill in the required parameters:
-* PlaybookName: Enter the playbook name here.
+* Playbook Name: Enter the playbook name here.
 * Keyvault Name: Enter name of keyvault where service account credentials are stored(e.g. RubrikSentinelKeyVault).
 * Tenant Id: Enter Tenant Id of your Microsoft EntraID where keyvault is available.
-* BaseUrl: Enter name of keyvault where service account credentials are stored(e.g. RubrikSentinelKeyVault)
+* Rubrik Base Url: Enter Base Url of the RubrikApi instance (Example: https://rubrik-tme.my.rubrik.com).
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMehul-web%2FMimecast_TTP_Data_Connector%2Frefs%2Fheads%2Fmain%2Fincidentcommenttest%2Fazuredeploy.json) [![Deploy to Azure](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMehul-web%2FMimecast_TTP_Data_Connector%2Frefs%2Fheads%2Fmain%2Fincidentcommenttest%2Fazuredeploy.json)
 ### Post-Deployment instructions
