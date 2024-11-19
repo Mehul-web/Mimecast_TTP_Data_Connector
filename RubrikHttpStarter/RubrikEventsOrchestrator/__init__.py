@@ -1,6 +1,6 @@
 """This __init__ file will be called by Http Starter function to pass the Other Events data to activity function."""
 import azure.durable_functions as df
-from shared_code.consts import  EVENTS_LOG_TYPE, LOGS_STARTS_WITH
+from shared_code.consts import EVENTS_LOG_TYPE, LOGS_STARTS_WITH
 from shared_code.logger import applogger
 
 
@@ -13,13 +13,13 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     Returns:
         str: result of Activity function
     """
-    applogger.debug("{} RubrikEventOrchestrator function called!".format(LOGS_STARTS_WITH))
+    applogger.info("{} RubrikEventOrchestrator function called!".format(LOGS_STARTS_WITH))
     json_data = context.get_input()
 
     result1 = yield context.call_activity(
         "RubrikActivity", {"data": json_data, "log_type": EVENTS_LOG_TYPE}
     )
-    applogger.debug(
+    applogger.info(
         "{} RubrikEventOrchestrator function completed!".format(LOGS_STARTS_WITH)
     )
     return result1

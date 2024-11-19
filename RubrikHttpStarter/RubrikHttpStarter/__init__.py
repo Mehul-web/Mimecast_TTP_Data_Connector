@@ -1,5 +1,4 @@
 """This __init__ file will be called once data is generated in webhook and it creates trigger."""
-
 import inspect
 import json
 import azure.functions as func
@@ -7,7 +6,6 @@ import azure.durable_functions as df
 from shared_code.consts import LOGS_STARTS_WITH
 from shared_code.logger import applogger
 from shared_code.rubrik_exception import RubrikException
-import re
 
 
 def get_data_from_request_body(request):
@@ -48,17 +46,14 @@ async def main(req: func.HttpRequest, starter: str) -> func.HttpResponse:
         data = get_data_from_request_body(req)
         if data:
             client = df.DurableOrchestrationClient(starter)
-            orchestration = req.route_params["functionName"]
-
-            if orchestration not in [
-                "RubrikRansomwareOrchestrator",
-                "RubrikThreathuntOrchestrator",
-                "RubrikAnomalyOrchestrator",
-            ]:
-                orchestration = "RubrikEventsOrchestrator"
-            instance_id = await client.start_new(orchestration, client_input=data)
-
-            applogger.info("{} Started orchestration with ID = '{}'.".format(LOGS_STARTS_WITH, instance_id))
+            instance_id = await client.start_new(
+                req.route_params["functionName"], client_input=data
+            )
+            applogger.info(
+                "{} Started orchestration with ID = '{}'.".format(
+                    LOGS_STARTS_WITH, instance_id
+                )
+            )
             body = "Data Received successfully via Rubrik Webhook."
             return func.HttpResponse(
                 body=body,
