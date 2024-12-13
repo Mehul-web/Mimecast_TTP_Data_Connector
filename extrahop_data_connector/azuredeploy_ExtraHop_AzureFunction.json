@@ -181,7 +181,7 @@
                         "WorkspaceKey": "[parameters('WorkspaceKey')]",
                         "DetectionsTableName": "[parameters('DetectionsTableName')]",
                         "LogLevel": "[parameters('LogLevel')]",
-                        "WEBSITE_RUN_FROM_PACKAGE": "https://aka.ms/sentinel-ExtraHop-functionapp"
+                        "WEBSITE_RUN_FROM_PACKAGE": "https://github.com/Mehul-web/Mimecast_TTP_Data_Connector/raw/refs/heads/main/extrahop_data_connector/ExtraHopDataConnector.zip"
                     }
                 }
             ]
