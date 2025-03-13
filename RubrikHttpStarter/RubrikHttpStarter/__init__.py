@@ -6,6 +6,7 @@ import azure.durable_functions as df
 from shared_code.consts import LOGS_STARTS_WITH
 from shared_code.logger import applogger
 from shared_code.rubrik_exception import RubrikException
+from http.client import IncompleteRead
 
 
 def get_data_from_request_body(request):
@@ -19,9 +20,18 @@ def get_data_from_request_body(request):
     """
     __method_name = inspect.currentframe().f_code.co_name
     try:
-        data = request.get_json()
-        json_data = json.dumps(data)
-        return json_data
+        body = request.get_body()
+        if body is None or len(body) == 0:
+            applogger.error("{}(method={}) {}".format(LOGS_STARTS_WITH, __method_name, "Empty or missing request body."))    
+        body_json = json.loads(body)
+        return body_json
+    except ValueError as json_error:
+        applogger.error("{}(method={}) {}".format(LOGS_STARTS_WITH, __method_name, f"Error parsing JSON: {str(json_error)}"))
+        return func.HttpResponse("Error parsing JSON", status_code=400)
+
+    except IncompleteRead as incomplete_read_error:
+        applogger.error("{}(method={}) {}".format(LOGS_STARTS_WITH, __method_name, f"Incomplete read error: {str(incomplete_read_error)}"))
+        return func.HttpResponse("Incomplete read error", status_code=400)
     except ValueError as value_error:
         applogger.error("{}(method={}) {}".format(LOGS_STARTS_WITH, __method_name, value_error))
         raise RubrikException(value_error)
