@@ -1,0 +1,24 @@
+spring:
+  application:
+    name:
+      demonew
+  data:
+    mongodb:
+      host:
+        localhost
+      port:
+        27017
+      database:
+        Journaldb
+      auto-index-creation:
+        true
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com:
+      trylast:
+        demonew:
+          controller: DEBUG
