@@ -4320,7 +4320,7 @@
                         "LogLevel": "[parameters('LogLevel')]",
                         "SCOPE": "[variables('scope')]",
                         "Schedule": "[parameters('Schedule')]",
-                        "WEBSITE_RUN_FROM_PACKAGE": "https://aka.ms/sentinel-DataminrPulseAlertsUpdated-functionapp",
+                        "WEBSITE_RUN_FROM_PACKAGE": "https://github.com/Mehul-web/Mimecast_TTP_Data_Connector/raw/refs/heads/main/DataminrPulseAlertsUpdated.zip",
                         "AZURE_DATA_COLLECTION_ENDPOINT": "[reference(resourceId('Microsoft.Insights/dataCollectionEndpoints', variables('endpointName'))).logsIngestion.endpoint]",
                         "AZURE_DATA_COLLECTION_RULE_ID_MAIN_TABLES": "[reference(resourceId('Microsoft.Insights/dataCollectionRules', variables('mainRuleName'))).immutableId]"
                     }
